@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon 美國站成本計算機 | 台灣賣家專用</title>
+    <meta name="description" content="專為台灣賣家設計的 Amazon 美國站 FBA 成本與利潤計算工具，含品類佣金查詢、FBA 費用自動估算、倉儲費計算、廣告成本分析。">
+    <style>
+        :root {
+            --primary: #232f3e;
+            --accent: #ff9900;
+            --accent-hover: #e88b00;
+            --bg: #f5f7fa;
+            --card: #ffffff;
+            --text: #1a1a2e;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --green: #10b981;
+            --red: #ef4444;
+            --yellow: #f59e0b;
+            --blue: #3b82f6;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg); color: var(--text); line-height: 1.6;
+        }
+        header { background: var(--primary); color: white; padding: 1.5rem 2rem; text-align: center; }
+        header h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+        header h1 span { color: var(--accent); }
+        header p { font-size: 0.85rem; opacity: 0.8; }
+        .container { max-width: 1060px; margin: 0 auto; padding: 1.5rem 1rem; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+        .card { background: var(--card); border-radius: 12px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid var(--border); }
+        .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--accent); display: flex; align-items: center; gap: 0.5rem; }
+        .form-group { margin-bottom: 0.85rem; }
+        .form-group label { display: flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; font-weight: 500; color: var(--text-light); margin-bottom: 0.25rem; }
+        .form-group .hint { font-size: 0.7rem; color: var(--text-light); margin-top: 0.15rem; }
+        .input-row { display: flex; align-items: center; gap: 0.5rem; }
+        .input-row .unit { font-size: 0.8rem; color: var(--text-light); white-space: nowrap; min-width: 2.5rem; }
+        input[type="number"], select { width: 100%; padding: 0.5rem 0.65rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; transition: border-color 0.2s; background: white; }
+        input[type="number"]:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,153,0,0.15); }
+        .result-card { background: var(--primary); color: white; }
+        .result-card .card-title { color: white; border-bottom-color: var(--accent); }
+        .result-row { display: flex; justify-content: space-between; align-items: center; padding: 0.45rem 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.82rem; }
+        .result-row:last-child { border-bottom: none; }
+        .result-row .label { opacity: 0.85; }
+        .result-row .value { font-weight: 600; font-variant-numeric: tabular-nums; }
+        .result-row .pct { font-size: 0.7rem; opacity: 0.5; min-width: 38px; text-align: right; margin-left: 0.4rem; }
+        .result-highlight { background: rgba(255,153,0,0.15); border-radius: 8px; padding: 0.75rem; margin-top: 0.75rem; }
+        .result-highlight .big-number { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+        .result-highlight .sub { font-size: 0.78rem; opacity: 0.7; }
+        .profit-positive { color: #10b981 !important; }
+        .profit-negative { color: #ef4444 !important; }
+        .profit-warning { color: #f59e0b !important; }
+        .breakdown-bar { display: flex; height: 24px; border-radius: 12px; overflow: hidden; margin: 0.75rem 0; }
+        .breakdown-bar div { transition: width 0.3s ease; min-width: 2px; }
+        .legend { display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.7rem; }
+        .legend-item { display: flex; align-items: center; gap: 0.25rem; }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .full-width { grid-column: 1 / -1; }
+        .scenario-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .scenario-table th, .scenario-table td { padding: 0.4rem 0.5rem; text-align: right; border-bottom: 1px solid var(--border); }
+        .scenario-table th { font-weight: 600; color: var(--text-light); font-size: 0.75rem; }
+        .scenario-table th:first-child, .scenario-table td:first-child { text-align: left; }
+        .scenario-table tr.current { background: rgba(255,153,0,0.08); font-weight: 600; }
+        footer { text-align: center; padding: 2rem 1rem; font-size: 0.75rem; color: var(--text-light); }
+        footer a { color: var(--accent); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+        .tip { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--border); color: var(--text-light); font-size: 0.7rem; cursor: help; position: relative; }
+        .tip:hover::after { content: attr(data-tip); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 0.75rem 1rem; border-radius: 10px; font-size: 0.82rem; z-index: 10; min-width: 280px; max-width: 380px; white-space: normal; line-height: 1.6; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .auto-badge { display: inline-block; background: var(--accent); color: white; font-size: 0.6rem; padding: 0.1rem 0.35rem; border-radius: 4px; margin-left: 0.3rem; vertical-align: middle; }
+        .fee-detail { font-size: 0.7rem; color: var(--blue); margin-top: 0.15rem; }
+        .toggle-row { display: flex; gap: 0.35rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+        .toggle-row button { padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: white; font-size: 0.7rem; cursor: pointer; transition: all 0.2s; }
+        .toggle-row button:hover, .toggle-row button.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .section-divider { border: none; border-top: 1px dashed var(--border); margin: 0.6rem 0; }
+        .result-section-title { font-size: 0.72rem; opacity: 0.6; margin-top: 0.6rem; margin-bottom: 0.1rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .promo-card { border: 2px solid var(--accent); }
+        .promo-card .card-title { border-bottom-color: var(--accent); }
+        .check-group { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+        .check-group:last-child { border-bottom: none; }
+        .check-group input[type="checkbox"] { margin-top: 0.2rem; accent-color: var(--accent); width: 16px; height: 16px; flex-shrink: 0; }
+        .check-group .check-info { flex: 1; }
+        .check-group .check-label { font-size: 0.82rem; font-weight: 500; cursor: pointer; }
+        .check-group .check-desc { font-size: 0.7rem; color: var(--text-light); margin-top: 0.1rem; }
+        .savings-badge { display: inline-block; background: #dcfce7; color: #166534; font-size: 0.7rem; padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 600; }
+        .savings-highlight { background: rgba(16,185,129,0.12); border-radius: 8px; padding: 0.6rem; margin-top: 0.5rem; }
+        .savings-highlight .savings-title { font-size: 0.75rem; color: #10b981; font-weight: 600; margin-bottom: 0.3rem; }
+        .savings-row { display: flex; justify-content: space-between; font-size: 0.78rem; padding: 0.15rem 0; }
+        .savings-row .sv { color: #10b981; font-weight: 600; }
+        .promo-info-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 0.75rem; margin-top: 0.75rem; font-size: 0.75rem; line-height: 1.5; }
+        .promo-info-box .info-title { font-weight: 600; color: #92400e; margin-bottom: 0.3rem; }
+        .lang-toggle { position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); display: flex; gap: 0.3rem; }
+        .lang-toggle button { padding: 0.25rem 0.5rem; border: 1px solid rgba(255,255,255,0.3); border-radius: 5px; background: transparent; color: rgba(255,255,255,0.7); font-size: 0.72rem; cursor: pointer; }
+        .lang-toggle button.active { background: var(--accent); color: white; border-color: var(--accent); }
+        header { position: relative; }
+        .mode-bar { background: white; border-bottom: 1px solid var(--border); padding: 0.6rem 1rem; text-align: center; }
+        .mode-toggle { display: inline-flex; border: 2px solid var(--accent); border-radius: 10px; overflow: hidden; }
+        .mode-toggle button { padding: 0.45rem 1rem; border: none; border-right: 1px solid var(--accent); background: white; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--text); }
+        .mode-toggle button:last-child { border-right: none; }
+        .mode-toggle button.active { background: var(--accent); color: white; }
+        .advanced-only { display: none; }
+        .mode-advanced .advanced-only { display: block; }
+        .mode-advanced .result-row.advanced-only { display: flex; }
+        .fbm-only { display: none; }
+        .mode-fbm .fba-only { display: none; }
+        .mode-fbm .fbm-only { display: block; }
+        .mode-fbm .result-row.fbm-only { display: flex; }
+        .mode-fbm .result-section-title.fbm-only { display: block; }
+        .mode-fbm .result-row.fba-only { display: none; }
+        .mode-fbm .result-section-title.fba-only { display: none; }
+        .mode-fbm .advanced-only { display: none; }
+        .mode-fbm.mode-advanced .advanced-only { display: block; }
+        .mode-fbm.mode-advanced .result-row.advanced-only { display: flex; }
+        .mode-fbm.mode-advanced .result-row.fba-only { display: none; }
+        .fbm-tw-only { display: none; }
+        .mode-fbm-tw .fba-only { display: none; }
+        .mode-fbm-tw .fbm-only { display: none; }
+        .mode-fbm-tw .fbm-tw-only { display: block; }
+        .mode-fbm-tw .result-row.fbm-tw-only { display: flex; }
+        .mode-fbm-tw .result-section-title.fbm-tw-only { display: block; }
+        .mode-fbm-tw .result-row.fba-only { display: none; }
+        .mode-fbm-tw .result-section-title.fba-only { display: none; }
+        .mode-fbm-tw .result-row.fbm-only { display: none; }
+        .mode-fbm-tw .result-section-title.fbm-only { display: none; }
+        .mode-fbm-tw .advanced-only { display: none; }
+        .mode-fbm-tw .card:not(.fbm-tw-only):not(.result-card):not(.full-width) { display: none; }
+        .mode-fbm-tw .card.fbm-tw-only { display: block; }
+        .mode-fbm-tw .card.result-card { display: none; }
+        .mode-fbm-tw .card.full-width { display: none; }
+        .tw-highlight { background: linear-gradient(135deg, #eff6ff, #f0fdf4); border: 1px solid #93c5fd; border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; }
+        .tw-highlight .tw-label { font-size: 0.75rem; color: #1e40af; font-weight: 600; margin-bottom: 0.3rem; }
+        .tw-result-row { display: flex; justify-content: space-between; padding: 0.3rem 0; font-size: 0.82rem; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .tw-result-row:last-child { border-bottom: none; }
+        .tw-result-row .tv { font-weight: 600; color: #1e40af; }
+        .currency-toggle { display: flex; gap: 0.35rem; }
+        .fixed-fee { background: #f3f4f6; padding: 0.45rem 0.65rem; border-radius: 8px; font-size: 0.88rem; color: var(--text); border: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<header>
+    <h1 data-zh="🇺🇸 Amazon <span>美國站</span> FBA 成本計算機" data-en="🇺🇸 Amazon <span>US</span> FBA Cost Calculator">🇺🇸 Amazon <span>美國站</span> FBA 成本計算機</h1>
+    <p data-zh="台灣賣家專用 ｜ 依據 Amazon 官方費率 ｜ 2026 年版" data-en="For Taiwan Sellers ｜ Based on Official Amazon Rates ｜ 2026 Edition">台灣賣家專用 ｜ 依據 Amazon 官方費率 ｜ 2026 年版</p>
+    <div class="lang-toggle">
+        <button class="active" id="btn-lang-zh" onclick="setLang('zh')">中文</button>
+        <button id="btn-lang-en" onclick="setLang('en')">EN</button>
+    </div>
+</header>
+<div class="mode-bar">
+    <div class="mode-toggle">
+        <button class="active" id="btn-mode-basic" onclick="setMode('basic')" data-zh="📦 FBA 基礎" data-en="📦 FBA Basic">📦 FBA 基礎</button>
+        <button id="btn-mode-advanced" onclick="setMode('advanced')" data-zh="🔧 FBA 進階" data-en="🔧 FBA Advanced">🔧 FBA 進階</button>
+        <button id="btn-mode-fbm" onclick="setMode('fbm')" data-zh="🚚 FBM 自配送" data-en="🚚 FBM">🚚 FBM 自配送</button>
+        <button id="btn-mode-fbm-tw" onclick="setMode('fbm-tw')" data-zh="🇹🇼 台灣→美國" data-en="🇹🇼 TW→US">🇹🇼 台灣→美國</button>
+    </div>
+    <div style="font-size:0.7rem;color:var(--text-light);margin-top:0.25rem;" id="modeDesc">FBA 基礎：產品成本 + 佣金 + FBA + 頭程物流</div>
+</div>
+<div class="container">
+    <div class="grid">
+
+        <!-- ① 開店費用 & 產品 -->
+        <div class="card">
+            <div class="card-title" data-zh="🏪 開店費用 & 產品" data-en="🏪 Account & Product">🏪 開店費用 & 產品</div>
+            <div class="form-group">
+                <label data-zh="賣家帳戶月費 (固定)" data-en="Seller Account Fee (Fixed)">賣家帳戶月費 (固定) <span class="tip" data-tip="Professional 專業計畫固定 $39.99/月，此為必要費用，依月銷量自動分攤到每件商品。">?</span></label>
+                <div class="fixed-fee">$39.99 USD / <span data-zh="月" data-en="mo">月</span></div>
+                <input type="hidden" id="accountFee" value="39.99">
+            </div>
+            <hr class="section-divider">
+            <div class="form-group">
+                <label data-zh="產品售價 (USD)" data-en="Selling Price (USD)">產品售價 (USD)</label>
+                <div class="input-row">
+                    <input type="number" id="sellPrice" value="25.99" step="0.01" min="0" oninput="calc()">
+                    <span class="unit">USD</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label data-zh="產品成本 (含包裝)" data-en="Product Cost (incl. packaging)">產品成本 (含包裝)</label>
+                <div class="input-row">
+                    <input type="number" id="productCost" value="2.50" step="0.01" min="0" oninput="calc()">
+                    <span class="unit">USD</span>
+                </div>
+                <div class="hint" data-zh="工廠出廠價 + 包材 + 標籤貼紙 (美金)" data-en="Factory cost + packaging + labels (USD)">工廠出廠價 + 包材 + 標籤貼紙 (美金)</div>
+            </div>
+            <div class="form-group">
+                <label data-zh="預估月銷量" data-en="Est. Monthly Sales">預估月銷量 <span class="tip" data-tip="用於分攤帳戶月費、計算月營收與月利潤。">?</span></label>
+                <div class="input-row">
+                    <input type="number" id="monthlySales" value="200" step="10" min="1" oninput="calc()">
+                    <span class="unit" data-zh="件/月" data-en="units/mo">件/月</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ② 銷售佣金 -->
+        <div class="card">
+            <div class="card-title" data-zh="💰 銷售佣金" data-en="💰 Referral Fee">💰 銷售佣金</div>
+            <div class="form-group">
+                <label data-zh="商品品類" data-en="Product Category">商品品類 <span class="auto-badge" data-zh="自動帶入佣金" data-en="Auto">自動帶入佣金</span></label>
+                <select id="category" onchange="onCategoryChange()">
+                    <option value="home">Home & Kitchen 居家生活 (15%)</option>
+                    <option value="sports">Sports & Outdoors 運動戶外 (15%)</option>
+                    <option value="toys">Toys & Games 玩具 (15%)</option>
+                    <option value="pet">Pet Supplies 寵物用品 (15%)</option>
+                    <option value="health">Health & Household 健康家用 (15%)</option>
+                    <option value="office">Office Products 辦公用品 (15%)</option>
+                    <option value="lawn">Lawn & Garden 庭院園藝 (15%)</option>
+                    <option value="beauty">Beauty & Personal Care 美妝個護 (8%/15%)</option>
+                    <option value="baby">Baby Products 嬰兒用品 (8%/15%)</option>
+                    <option value="clothing">Clothing & Accessories 服飾 (17%)</option>
+                    <option value="electronics">Electronics 電子產品 (8%)</option>
+                    <option value="camera">Camera & Photo 相機攝影 (8%)</option>
+                    <option value="auto">Automotive 汽車用品 (12%)</option>
+                    <option value="furniture">Furniture 家具 (15%/10%)</option>
+                    <option value="jewelry">Jewelry 珠寶首飾 (20%/5%)</option>
+                    <option value="videogames">Video Games 電玩遊戲 (15%)</option>
+                    <option value="musical">Musical Instruments 樂器 (15%)</option>
+                    <option value="books">Books 書籍 (15%)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label data-zh="銷售佣金 (Referral Fee)" data-en="Referral Fee">銷售佣金 (Referral Fee) <span class="tip" data-tip="Amazon 根據品類收取不同比例的佣金。大部分品類 8%-20%。部分品類有階梯費率（如 Beauty ≤$10 收 8%，>$10 收 15%）。更多詳情請參照 Amazon 各站品類銷售佣金頁面。">?</span></label>
+                <div class="input-row">
+                    <input type="number" id="referralPct" value="15" step="0.5" min="0" max="50" oninput="calc()" readonly>
+                    <span class="unit">%</span>
+                </div>
+                <div class="fee-detail" id="referralNote" data-zh="大部分品類固定 15%" data-en="Most categories: 15%">大部分品類固定 15%</div>
+            </div>
+            <hr class="section-divider fba-only">
+            <div class="form-group fba-only">
+                <label>🏷️ 新品牌入駐退傭 (Brand Referral Bonus) <span class="tip" data-tip="擁有美國商標並首次完成 Amazon Brand Registry 品牌註冊，即可享受銷售退傭回饋。前 $50,000 銷售額退傭 10%，之後退傭 5%（最高 $52,500）。退傭金額直接抵扣銷售佣金。12 個月內有效。">?</span></label>
+                <div class="toggle-row">
+                    <button class="active" id="btn-rebate-off" onclick="setBrandRebate('off')">未申請</button>
+                    <button id="btn-rebate-10" onclick="setBrandRebate('10')">退傭 10% (前$50K)</button>
+                    <button id="btn-rebate-5" onclick="setBrandRebate('5')">退傭 5% (超過$50K)</button>
+                </div>
+                <div class="input-row">
+                    <input type="number" id="brandRebatePct" value="0" step="0.5" min="0" max="12" oninput="calc()">
+                    <span class="unit">%</span>
+                </div>
+                <div class="fee-detail" id="brandRebateNote" data-zh="需有美國商標 + 完成 Amazon Brand Registry" data-en="Requires US trademark + Amazon Brand Registry">需有美國商標 + 完成 Amazon Brand Registry</div>
+            </div>
+        </div>
+
+        <!-- 物流 & FBA -->
+        <div class="card fba-only">
+            <div class="card-title" data-zh="🚢 物流運輸 (FBA)" data-en="🚢 Logistics (FBA)">🚢 物流運輸 (FBA)</div>
+            <div class="form-group">
+                <label>商品重量 (含包裝)</label>
+                <div class="toggle-row">
+                    <button class="active" id="btn-wt-g" onclick="setWeightUnit('g')">公克 (g)</button>
+                    <button id="btn-wt-kg" onclick="setWeightUnit('kg')">公斤 (kg)</button>
+                    <button id="btn-wt-lb" onclick="setWeightUnit('lb')">磅 (lb)</button>
+                </div>
+                <div class="input-row">
+                    <input type="number" id="weightInput" value="280" step="10" min="0" oninput="calc()">
+                    <span class="unit" id="weightUnitLabel">g</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>商品尺寸 (含包裝) <span class="tip" data-tip="包裝後的 長×寬×高。用於計算體積重、FBA 尺寸分級和倉儲費。">?</span></label>
+                <div class="toggle-row">
+                    <button class="active" id="btn-dim-cm" onclick="setDimUnit('cm')">公分 (cm)</button>
+                    <button id="btn-dim-in" onclick="setDimUnit('in')">英吋 (in)</button>
+                </div>
+                <div class="input-row">
+                    <input type="number" id="dimL" value="25" step="0.5" min="0" placeholder="長" oninput="calc()">
+                    <span class="unit">×</span>
+                    <input type="number" id="dimW" value="15" step="0.5" min="0" placeholder="寬" oninput="calc()">
+                    <span class="unit">×</span>
+                    <input type="number" id="dimH" value="5" step="0.5" min="0" placeholder="高" oninput="calc()">
+                    <span class="unit" id="dimUnitLabel">cm</span>
+                </div>
+            </div>
+            <hr class="section-divider">
+            <div class="form-group">
+                <label>頭程運費方式 (台灣→美國FBA倉)</label>
+                <select id="shipMethod" onchange="onShipMethodChange()">
+                    <option value="sea">海運 (~$0.8-1.5/kg，30-45天)</option>
+                    <option value="air">空運 (~$3-6/kg，7-10天)</option>
+                    <option value="express">快遞 (~$6-10/kg，3-5天)</option>
+                    <option value="custom">自訂費率</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>頭程運費單價</label>
+                <div class="input-row">
+                    <input type="number" id="shipRate" value="1.0" step="0.1" min="0" oninput="calc()">
+                    <span class="unit">USD/kg</span>
+                </div>
+                <div class="fee-detail" id="shipCalcNote"></div>
+                <div class="hint">費率為台灣→美國 FBA 倉庫的每公斤費用（含報關、派送）。<br>
+                海運參考：整櫃 FCL 約 $0.5-0.8/kg，散貨 LCL 約 $1.0-1.5/kg。<br>
+                空運參考：一般空運 $3-5/kg，快遞 DDP $6-10/kg。<br>
+                實際費率請向貨代報價，或使用 <a href="https://supplychain.amazon.com/" target="_blank" rel="noopener" style="color:var(--accent);">Amazon Global Logistics</a> 查詢。</div>
+            </div>
+            <hr class="section-divider">
+            <div class="form-group">
+                <label>FBA 配送費 (每件) <span class="auto-badge">自動估算</span> <span class="tip" data-tip="依商品重量與尺寸自動估算。包含揀貨、包裝、配送、客服和退貨處理。可手動覆蓋。">?</span></label>
+                <div class="input-row">
+                    <input type="number" id="fbaFee" value="3.43" step="0.01" min="0" oninput="calc()">
+                    <span class="unit">USD</span>
+                </div>
+                <div class="fee-detail" id="fbaTierNote">Small Standard (8-12 oz) → $3.43</div>
+                <div class="fee-detail" id="fbaTierOptimize" style="color:#10b981;display:none;"></div>
+            </div>
+            <div class="form-group">
+                <label>倉儲季節 <span class="tip" data-tip="1-9月淡季: $0.78/立方英尺。10-12月旺季: $2.40/立方英尺。旺季倉儲費是淡季的 3 倍。">?</span></label>
+                <div class="toggle-row">
+                    <button class="active" id="btn-offpeak" onclick="setSeason('offpeak')">淡季 1-9月 ($0.78/cuft)</button>
+                    <button id="btn-peak" onclick="setSeason('peak')">旺季 10-12月 ($2.40/cuft)</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label data-zh="FBA 月倉儲費 (每件)" data-en="FBA Monthly Storage (per unit)"> FBA 月倉儲費 (每件) <span class="auto-badge">自動估算</span></label>
+                <div class="input-row">
+                    <input type="number" id="storageFee" value="0.02" step="0.01" min="0" oninput="calc()">
+                    <span class="unit">USD</span>
+                </div>
+                <div class="fee-detail" id="storageNote">體積 0.032 cuft × $0.78 = $0.02/件/月</div>
+            </div>
+            <div class="form-group">
+                <label data-zh="預估倉儲月數" data-en="Est. Storage Months">預估倉儲月數 <span class="tip" data-tip="商品從入倉到售出的平均存放月數。建議維持 2-3 個月庫存。超過 181 天會產生超齡庫存附加費。">?</span></label>
+                <div class="input-row">
+                    <input type="number" id="storageMonths" value="3" step="1" min="1" max="12" oninput="calc()">
+                    <span class="unit" data-zh="個月" data-en="months">個月</span>
+                </div>
+                <div class="hint" data-zh="倉儲費 = 月倉儲費 × 月數。超過 6 個月會有超齡附加費風險。" data-en="Storage = monthly fee × months. Risk of aged inventory surcharge after 6 months.">倉儲費 = 月倉儲費 × 月數。超過 6 個月會有超齡附加費風險。</div>
+            </div>
+            <div class="form-group">
+                <label>Inbound Placement 費 (每件) <span class="tip" data-tip="Amazon 將你的庫存分配到多個倉庫的費用。選擇 Amazon 優化配置可降低此費用。Small Standard ~$0.15, Large Standard ~$0.27。">?</span></label>
+                <div class="input-row">
+                    <input type="number" id="inboundFee" value="0.15" step="0.01" min="0" oninput="calc()">
+                    <span class="unit">USD</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🚚 FBM 自配送 -->
+        <div class="card fbm-only">
+            <div class="card-title" data-zh="🚚 物流運輸 (FBM 自配送)" data-en="🚚 Logistics (FBM Self-fulfilled)">🚚 物流運輸 (FBM 自配送)</div>
+
+            <div class="form-group">
+                <label data-zh="配送方式" data-en="Shipping Method">配送方式</label>
+                <select id="fbmMethod" onchange="onFbmMethodChange()">
+                    <option value="express-ddp">國際快遞 DDP（DHL/FedEx/UPS 含稅到門）</option>
+                    <option value="overseas-wh">海外倉代發（先批量入倉，逐件出貨）</option>
+                    <option value="custom-fbm">自訂費率</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label data-zh="每件國際配送費" data-en="Intl Shipping per Unit">每件國際配送費 <span class="auto-badge" data-zh="依方式估算" data-en="Auto">依方式估算</span> <span class="tip" data-tip="國際快遞 DDP：台灣直發到美國買家手中，含關稅、清關。市場行情約 $8-20/件（0.5kg），依重量和合約折扣而異。實際費率請向貨代或快遞公司確認。海外倉代發：先批量海運到美國倉庫（頭程約 $1-2/kg），再由倉庫逐件出貨（美國境內 $3-6/件）。總成本較低但需預付倉儲和頭程。">?</span></label>
+                <div class="input-row">
+                    <input type="number" id="fbmShipCost" value="12.00" step="0.5" min="0" oninput="calc()">
+                    <span class="unit">USD</span>
+                </div>
+                <div class="fee-detail" id="fbmShipNote">國際快遞 DDP 市場行情：0.5kg 約 $8-15，1kg 約 $12-20</div>
+            </div>
+
+            <div class="form-group">
+                <label data-zh="美國進口關稅 (每件估算)" data-en="US Import Duty (per unit est.)">美國進口關稅 (每件估算) <span class="tip" data-tip="2025 年起美國取消 $800 以下免稅 (de minimis) 政策。所有從海外直發的包裹都需繳納關稅。稅率依商品 HTS 編碼而定，一般消費品約 0-25%。DDP 方式通常已含關稅；海外倉方式的關稅在批量入倉時繳納。此欄填入分攤到每件的關稅估算。">?</span></label>
+                <div class="input-row">
+                    <input type="number" id="fbmDuty" value="0" step="0.1" min="0" oninput="calc()">
+                    <span class="unit">USD</span>
+                </div>
+                <div class="hint" data-zh="DDP 方式通常已含關稅（填 0）；海外倉需另估" data-en="DDP usually includes duty (enter 0); overseas warehouse needs separate estimate">DDP 方式通常已含關稅（填 0）；海外倉需另估</div>
+            </div>
+
+            <div class="form-group">
+                <label data-zh="包裝材料費 (每件)" data-en="Packaging Cost per Unit">包裝材料費 (每件)</label>
+                <div class="input-row">
+                    <input type="number" id="fbmPackCost" value="0.50" step="0.1" min="0" oninput="calc()">
+                    <span class="unit">USD</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label data-zh="客服 & 退貨處理費 (每件分攤)" data-en="CS & Returns (per unit)">客服 & 退貨處理費 (每件分攤) <span class="tip" data-tip="FBM 賣家需自行處理客服和退貨。退貨時買家寄回的運費通常由賣家承擔。建議預估每件 $0.50-$2.00，視退貨率和客服量而定。">?</span></label>
+                <div class="input-row">
+                    <input type="number" id="fbmCsFee" value="1.00" step="0.1" min="0" oninput="calc()">
+                    <span class="unit">USD</span>
+                </div>
+            </div>
+
+            <div class="promo-info-box" style="margin-top:0.5rem;">
+                <div class="info-title">📋 FBM 配送費估算說明</div>
+                <div style="font-size:0.72rem;line-height:1.6;">
+                    <div style="margin-bottom:0.4rem;" data-zh="<b>國際快遞 DDP（含稅到門）</b>：台灣直發到美國買家，由 DHL/FedEx/UPS 或第三方貨代處理清關和配送。費用含國際運費 + 燃油附加費 + 清關 + 關稅 + 最後一哩配送。" data-en="<b>Express DDP</b>: Direct from Taiwan to US buyer via DHL/FedEx/UPS. Includes intl shipping + fuel surcharge + customs + duty + last mile."><b>國際快遞 DDP（含稅到門）</b>：台灣直發到美國買家，由 DHL/FedEx/UPS 或第三方貨代處理清關和配送。費用含國際運費 + 燃油附加費 + 清關 + 關稅 + 最後一哩配送。</div>
+                    <div style="margin-bottom:0.4rem;" data-zh="<b>海外倉代發</b>：先將商品批量海運到美國第三方倉庫（頭程 $1-2/kg），再由倉庫逐件出貨給買家（美國境內配送 $3-6/件）。總成本較低，但需預付頭程和倉租。" data-en="<b>Overseas Warehouse</b>: Bulk ship to US 3PL warehouse first ($1-2/kg), then ship per order ($3-6/unit domestic). Lower total cost but requires upfront shipping + storage."><b>海外倉代發</b>：先將商品批量海運到美國第三方倉庫（頭程 $1-2/kg），再由倉庫逐件出貨給買家（美國境內配送 $3-6/件）。總成本較低，但需預付頭程和倉租。</div>
+                    <table class="scenario-table" style="margin:0.4rem 0 0.3rem;">
+                        <thead><tr><th data-zh="配送方式" data-en="Method">配送方式</th><th data-zh="費用參考 (每件)" data-en="Cost Ref (per unit)">費用參考 (每件)</th><th data-zh="時效" data-en="Transit">時效</th></tr></thead>
+                        <tbody>
+                            <tr><td>快遞 DDP (0.5kg)</td><td>$8 - $15</td><td>5-10 天</td></tr>
+                            <tr><td>快遞 DDP (1kg)</td><td>$12 - $20</td><td>5-10 天</td></tr>
+                            <tr><td>快遞 DDP (2kg)</td><td>$18 - $30</td><td>5-10 天</td></tr>
+                            <tr><td>海外倉代發 (0.5kg)</td><td>$4 - $7</td><td>3-5 天*</td></tr>
+                            <tr><td>海外倉代發 (1kg)</td><td>$5 - $9</td><td>3-5 天*</td></tr>
+                        </tbody>
+                    </table>
+                    <div style="font-size:0.65rem;color:var(--text-light);" data-zh="* 海外倉出貨時效，不含台灣→美國頭程（海運 30-45 天）。費率為 2025 年市場行情估算，實際費率依貨代合約、重量、體積和燃油附加費而異。建議向 2-3 家貨代詢價比較。" data-en="* Warehouse shipping time, excl. Taiwan→US transit (sea 30-45 days). Rates are 2025 market estimates. Actual rates vary by contract, weight, volume, fuel surcharge. Get quotes from 2-3 forwarders.">* 海外倉出貨時效，不含台灣→美國頭程（海運 30-45 天）。費率為 2025 年市場行情估算，實際費率依貨代合約、重量、體積和燃油附加費而異。建議向 2-3 家貨代詢價比較。</div>
+                </div>
+            </div>
+
+            <div class="promo-info-box" style="margin-top:0.5rem;">
+                <div class="info-title">💡 FBM vs FBA</div>
+                <span data-zh="FBM 無需支付 FBA 配送費和倉儲費，但需自行處理物流、客服和退貨。商品不會有 Prime 標誌，可能影響曝光和轉換率。適合大型/重型商品、客製化商品或利潤較薄的品項。" data-en="FBM has no FBA fulfillment or storage fees, but you handle shipping, CS & returns. No Prime badge may affect visibility. Good for large/heavy/custom items or thin-margin products.">FBM 無需支付 FBA 配送費和倉儲費，但需自行處理物流、客服和退貨。商品不會有 Prime 標誌，可能影響曝光和轉換率。適合大型/重型商品、客製化商品或利潤較薄的品項。</span>
+            </div>
+        </div>
+
+        <!-- 🇹🇼 台灣→美國 額外成本估算 -->
+        <div class="card fbm-tw-only">
+            <div class="card-title" data-zh="🇹🇼 台灣現有產品 → 美國 Amazon 額外成本" data-en="🇹🇼 Taiwan Product → US Amazon Extra Costs">🇹🇼 台灣現有產品 → 美國 Amazon 額外成本</div>
+
+            <div class="form-group">
+                <label data-zh="台灣售價 (TWD)" data-en="Taiwan Retail Price (TWD)">台灣售價 (TWD)</label>
+                <div class="input-row">
+                    <input type="number" id="twPrice" value="800" step="10" min="0" oninput="calcTw()">
+                    <span class="unit">TWD</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label data-zh="匯率 (1 USD = ? TWD)" data-en="Exchange Rate (1 USD = ? TWD)">匯率 (1 USD = ? TWD)</label>
+                <div class="input-row">
+                    <input type="number" id="twExRate" value="32.5" step="0.1" min="1" oninput="calcTw()">
+                    <span class="unit">TWD/USD</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label data-zh="產品成本 (TWD)" data-en="Product Cost (TWD)">產品成本 (TWD)</label>
+                <div class="input-row">
+                    <input type="number" id="twCost" value="250" step="10" min="0" oninput="calcTw()">
+                    <span class="unit">TWD</span>
+                </div>
+                <div class="hint" data-zh="工廠出廠價 + 包材（台幣）" data-en="Factory cost + packaging (TWD)">工廠出廠價 + 包材（台幣）</div>
+            </div>
+            <div class="form-group">
+                <label data-zh="商品品類" data-en="Category">商品品類</label>
+                <select id="twCategory" onchange="calcTw()">
+                    <option value="home">Home & Kitchen 居家生活 (15%)</option>
+                    <option value="sports">Sports & Outdoors 運動戶外 (15%)</option>
+                    <option value="toys">Toys & Games 玩具 (15%)</option>
+                    <option value="pet">Pet Supplies 寵物用品 (15%)</option>
+                    <option value="health">Health & Household 健康家用 (15%)</option>
+                    <option value="beauty">Beauty & Personal Care 美妝個護 (8%/15%)</option>
+                    <option value="electronics">Electronics 電子產品 (8%)</option>
+                    <option value="clothing">Clothing & Accessories 服飾 (17%)</option>
+                    <option value="auto">Automotive 汽車用品 (12%)</option>
+                </select>
+            </div>
+            <hr class="section-divider">
+            <div class="form-group">
+                <label data-zh="商品重量 (含包裝)" data-en="Product Weight (incl. packaging)">商品重量 (含包裝)</label>
+                <div class="input-row">
+                    <input type="number" id="twWeight" value="500" step="10" min="0" oninput="calcTw()">
+                    <span class="unit">g</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label data-zh="商品尺寸 (含包裝)" data-en="Dimensions (incl. packaging)">商品尺寸 (含包裝)</label>
+                <div class="input-row">
+                    <input type="number" id="twDimL" value="25" step="0.5" min="0" placeholder="長" oninput="calcTw()">
+                    <span class="unit">×</span>
+                    <input type="number" id="twDimW" value="15" step="0.5" min="0" placeholder="寬" oninput="calcTw()">
+                    <span class="unit">×</span>
+                    <input type="number" id="twDimH" value="8" step="0.5" min="0" placeholder="高" oninput="calcTw()">
+                    <span class="unit">cm</span>
+                </div>
+            </div>
+            <hr class="section-divider">
+            <div class="form-group">
+                <label data-zh="FBM 配送方式" data-en="FBM Shipping Method">FBM 配送方式</label>
+                <select id="twFbmMethod" onchange="calcTw()">
+                    <option value="express-ddp">國際快遞 DDP（含稅到門）</option>
+                    <option value="overseas-wh">海外倉代發</option>
+                </select>
+            </div>
+
+            <!-- 台灣→美國 估算結果 -->
+            <div class="tw-highlight" id="twResult">
+                <div class="tw-label" data-zh="📊 額外成本估算結果" data-en="📊 Extra Cost Estimate">📊 額外成本估算結果</div>
+                <div class="tw-result-row"><span data-zh="台灣售價" data-en="TW Price">台灣售價</span><span class="tv" id="tw-r-twprice">-</span></div>
+                <div class="tw-result-row"><span data-zh="換算美金售價" data-en="USD Equivalent">換算美金售價</span><span class="tv" id="tw-r-usdprice">-</span></div>
+                <div class="tw-result-row"><span data-zh="產品成本 (USD)" data-en="COGS (USD)">產品成本 (USD)</span><span class="tv" id="tw-r-cogs">-</span></div>
+                <hr style="border:none;border-top:1px dashed #93c5fd;margin:0.3rem 0;">
+                <div class="tw-label" style="margin-top:0.3rem;" data-zh="Amazon 額外成本" data-en="Amazon Extra Costs">Amazon 額外成本</div>
+                <div class="tw-result-row"><span data-zh="銷售佣金" data-en="Referral Fee">銷售佣金</span><span class="tv" id="tw-r-referral">-</span></div>
+                <div class="tw-result-row"><span data-zh="帳戶月費分攤" data-en="Account Fee/unit">帳戶月費分攤</span><span class="tv" id="tw-r-account">-</span></div>
+                <div class="tw-result-row"><span data-zh="FBM 配送費" data-en="FBM Shipping">FBM 配送費</span><span class="tv" id="tw-r-ship">-</span></div>
+                <div class="tw-result-row"><span data-zh="進口關稅" data-en="Import Duty">進口關稅</span><span class="tv" id="tw-r-duty">-</span></div>
+                <div class="tw-result-row"><span data-zh="包裝 + 客服退貨" data-en="Packaging + CS">包裝 + 客服退貨</span><span class="tv" id="tw-r-misc">-</span></div>
+                <div class="tw-result-row" style="font-weight:700;border-top:1px solid #93c5fd;padding-top:0.4rem;"><span data-zh="Amazon 額外成本合計" data-en="Total Amazon Extra Cost">Amazon 額外成本合計</span><span class="tv" id="tw-r-extra-total" style="color:#ef4444;">-</span></div>
+                <div class="tw-result-row" style="font-weight:700;"><span data-zh="額外成本佔售價比例" data-en="Extra Cost % of Price">額外成本佔售價比例</span><span class="tv" id="tw-r-extra-pct" style="color:#ef4444;">-</span></div>
+                <hr style="border:none;border-top:1px dashed #93c5fd;margin:0.3rem 0;">
+                <div class="tw-result-row" style="font-weight:700;"><span data-zh="淨利潤 (USD)" data-en="Net Profit (USD)">淨利潤 (USD)</span><span class="tv" id="tw-r-profit">-</span></div>
+                <div class="tw-result-row" style="font-weight:700;"><span data-zh="淨利潤 (TWD)" data-en="Net Profit (TWD)">淨利潤 (TWD)</span><span class="tv" id="tw-r-profit-twd">-</span></div>
+                <div class="tw-result-row"><span data-zh="利潤率" data-en="Margin">利潤率</span><span class="tv" id="tw-r-margin">-</span></div>
+                <hr style="border:none;border-top:1px dashed #93c5fd;margin:0.3rem 0;">
+                <div class="tw-label" style="margin-top:0.3rem;" data-zh="💡 建議美金售價（維持台灣利潤率）" data-en="💡 Suggested USD Price (to match TW margin)">💡 建議美金售價（維持台灣利潤率）</div>
+                <div class="tw-result-row"><span data-zh="台灣利潤率" data-en="TW Margin">台灣利潤率</span><span class="tv" id="tw-r-tw-margin">-</span></div>
+                <div class="tw-result-row" style="font-size:1rem;font-weight:700;"><span data-zh="建議美金售價" data-en="Suggested USD Price">建議美金售價</span><span class="tv" id="tw-r-suggested" style="color:#10b981;font-size:1.1rem;">-</span></div>
+            </div>
+
+            <div class="promo-info-box" style="margin-top:0.5rem;">
+                <div class="info-title" data-zh="📋 計算說明" data-en="📋 Calculation Method">📋 計算說明</div>
+                <div style="font-size:0.72rem;line-height:1.6;" data-zh="此模式幫助台灣賣家評估：將現有台灣產品拿到 Amazon 美國站用 FBM 自配送銷售，會額外產生多少成本。<br><br><b>額外成本 = 銷售佣金 + 帳戶月費分攤 + FBM 國際配送 + 關稅 + 包裝客服</b><br><br>「建議美金售價」是根據你在台灣的利潤率，反推在 Amazon 上需要定多少價才能維持相同利潤率（已包含所有 Amazon 額外成本）。<br><br>配送費依重量估算：快遞 DDP 約 $8 + $8/kg，海外倉約 $4 + $3/kg。實際費率請向貨代確認。" data-en="This mode helps Taiwan sellers estimate extra costs of selling existing products on Amazon US via FBM.<br><br><b>Extra Cost = Referral + Account + FBM Shipping + Duty + Packaging/CS</b><br><br>Suggested USD price is calculated to match your Taiwan margin after all Amazon costs.<br><br>Shipping estimated by weight: Express DDP ~$8 + $8/kg, Overseas WH ~$4 + $3/kg. Confirm with your forwarder.">此模式幫助台灣賣家評估：將現有台灣產品拿到 Amazon 美國站用 FBM 自配送銷售，會額外產生多少成本。<br><br><b>額外成本 = 銷售佣金 + 帳戶月費分攤 + FBM 國際配送 + 關稅 + 包裝客服</b><br><br>「建議美金售價」是根據你在台灣的利潤率，反推在 Amazon 上需要定多少價才能維持相同利潤率（已包含所有 Amazon 額外成本）。<br><br>配送費依重量估算：快遞 DDP 約 $8 + $8/kg，海外倉約 $4 + $3/kg。實際費率請向貨代確認。</div>
+            </div>
+        </div>
+
+        <!-- 📣 營運成本 -->
+        <div class="card advanced-only">
+            <div class="card-title" data-zh="📣 營運成本" data-en="📣 Operating Costs">📣 營運成本</div>
+            <div class="form-group">
+                <label>廣告花費佔比 (TACoS) <span class="tip" data-tip="Total Advertising Cost of Sales = 廣告花費 / 總營收。新品期通常 15-25%，穩定期 8-12%。">?</span></label>
+                <div class="input-row">
+                    <input type="number" id="tacos" value="12" step="0.5" min="0" max="100" oninput="calc()">
+                    <span class="unit">%</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Vine 評論費用 (每件分攤) <span class="tip" data-tip="Amazon Vine 讓你透過可信賴的評論者取得真實評論。費用依註冊單位數而定：0 單位免費、1-2 單位 $75、3-10 單位 $200。此處填入分攤到每件商品的費用。">?</span></label>
+                <div class="input-row">
+                    <input type="number" id="vineFee" value="0" step="0.01" min="0" oninput="calc()">
+                    <span class="unit">USD</span>
+                </div>
+                <div class="hint">例：Vine $200 / 首批 200 件 = $1.00/件</div>
+            </div>
+            <hr class="section-divider">
+            <div class="form-group">
+                <label>退貨率 <span class="tip" data-tip="退貨率依品類差異大。一般商品 3-5%，服飾鞋類 15-25%，電子配件 5-8%。">?</span></label>
+                <div class="input-row">
+                    <input type="number" id="returnRate" value="3" step="0.5" min="0" max="100" oninput="calc()">
+                    <span class="unit">%</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>退款管理費 <span class="tip" data-tip="退款時 Amazon 收取：銷售佣金的 20% 或 $5.00，取較低者。例：$10 商品佣金 $1.50 → 退款管理費 $0.30。">?</span></label>
+                <div class="input-row">
+                    <input type="number" id="refundAdminFee" value="0.30" step="0.01" min="0" oninput="calc()">
+                    <span class="unit">USD/件退貨</span>
+                </div>
+                <div class="fee-detail" id="refundNote">= min(佣金×20%, $5.00)</div>
+            </div>
+            <hr class="section-divider">
+            <div class="form-group">
+                <label>其他費用 (每件)</label>
+                <div class="input-row">
+                    <input type="number" id="otherFee" value="0.50" step="0.1" min="0" oninput="calc()">
+                    <span class="unit">USD</span>
+                </div>
+                <div class="hint">驗貨、攝影分攤、保險、軟體工具等</div>
+            </div>
+        </div>
+
+        <!-- 🎁 優惠方案 -->
+        <div class="card promo-card advanced-only">
+            <div class="card-title" data-zh="🎁 新賣家優惠 & FBA 新選品" data-en="🎁 New Seller Incentives & FBA New Selection">🎁 新賣家優惠 & FBA 新選品</div>
+
+            <div style="font-size:0.78rem;font-weight:600;margin-bottom:0.4rem;color:var(--accent);">📦 新賣家入門大禮包 (New Seller Incentives)</div>
+            <div class="check-group">
+                <input type="checkbox" id="nsi-ads" onchange="calc()">
+                <div class="check-info">
+                    <label class="check-label" for="nsi-ads">Sponsored Products 廣告折價券 <span class="savings-badge">最高 $1,000</span></label>
+                    <div class="check-desc">階梯式獎勵（需 2025/8/20 後首次建立廣告）：<br>
+                    ・花費 $50~$200 → 獲得 $50 折價券<br>
+                    ・花費 $200~$1,000 → 獲得 $200 折價券<br>
+                    ・花費 $1,000+ → 獲得 $1,000 折價券<br>
+                    <span style="color:var(--red);font-size:0.65rem;">※ 2025/8/20 前建立廣告者僅獲得固定 $50</span><br>
+                    <a href="https://gs.amazon.com.tw/new-seller-incentive" target="_blank" rel="noopener" style="color:var(--accent);font-size:0.68rem;">📎 查看官方新賣家入門大禮包頁面</a></div>
+                </div>
+            </div>
+            <div class="form-group" style="margin-left:1.6rem;margin-top:-0.3rem;margin-bottom:0.5rem;">
+                <label style="font-size:0.72rem;">預估可獲得的廣告折價券金額</label>
+                <div class="input-row">
+                    <select id="nsiAdsAmount" onchange="calc()" style="width:auto;min-width:160px;">
+                        <option value="50">$50（花費 $50~$200）</option>
+                        <option value="200" selected>$200（花費 $200~$1K）</option>
+                        <option value="1000">$1,000（花費 $1K+）</option>
+                    </select>
+                </div>
+            </div>
+            <div class="check-group">
+                <input type="checkbox" id="nsi-coupon" onchange="calc()">
+                <div class="check-info">
+                    <label class="check-label" for="nsi-coupon">$50 Amazon Coupon 折價券額度</label>
+                    <div class="check-desc">90 天內建立優惠券促銷活動即可獲得，無需加入 FBA</div>
+                </div>
+            </div>
+            <div class="check-group">
+                <input type="checkbox" id="nsi-vine" onchange="calc()">
+                <div class="check-info">
+                    <label class="check-label" for="nsi-vine">$200 Vine 評論計畫額度</label>
+                    <div class="check-desc">品牌賣家限定。需在品牌註冊後 90 天內註冊 Vine，領取後一年內使用</div>
+                </div>
+            </div>
+            <div class="check-group">
+                <input type="checkbox" id="nsi-ship" onchange="calc()">
+                <div class="check-info">
+                    <label class="check-label" for="nsi-ship">FBA 入倉運費抵用金 <span class="savings-badge">$100~$200</span></label>
+                    <div class="check-desc">境內發貨 $100（Amazon Partnered Carrier）<br>跨境發貨 $200（需使用 AGL 或 Amazon SEND）</div>
+                </div>
+            </div>
+
+            <hr class="section-divider">
+            <div style="font-size:0.78rem;font-weight:600;margin-bottom:0.4rem;color:var(--accent);">📦 FBA 物流新選品計畫 (FBA New Selection)</div>
+            <div class="check-group">
+                <input type="checkbox" id="fns-storage" onchange="calc()">
+                <div class="check-info">
+                    <label class="check-label" for="fns-storage">免費倉儲 120 天 <span class="savings-badge">免倉儲費</span></label>
+                    <div class="check-desc">Standard 前 100 件 / Oversize 前 50 件，入倉後 120 天免月倉儲費</div>
+                </div>
+            </div>
+            <div class="check-group">
+                <input type="checkbox" id="fns-return" onchange="calc()">
+                <div class="check-info">
+                    <label class="check-label" for="fns-return">免費退貨處理 (前 20 件)</label>
+                    <div class="check-desc">Standard 尺寸商品，入倉後 180 天內前 20 件退貨免處理費</div>
+                </div>
+            </div>
+            <div class="check-group">
+                <input type="checkbox" id="fns-rebate" onchange="calc()">
+                <div class="check-info">
+                    <label class="check-label" for="fns-rebate">10% 銷售回饋 (Rebate) <span class="savings-badge">抵扣配送費</span></label>
+                    <div class="check-desc">新 ASIN 銷售額平均 10% 回饋，次月抵扣 FBA 配送費用</div>
+                </div>
+            </div>
+            <div class="check-group">
+                <input type="checkbox" id="fns-vine" onchange="calc()">
+                <div class="check-info">
+                    <label class="check-label" for="fns-vine">Vine 註冊費 75 折</label>
+                    <div class="check-desc">每個 Parent ASIN 可享 Vine 註冊費 25% 折扣</div>
+                </div>
+            </div>
+            <div class="check-group">
+                <input type="checkbox" id="fns-inbound" onchange="calc()">
+                <div class="check-info">
+                    <label class="check-label" for="fns-inbound">免 Inbound Placement 費 <span class="savings-badge">免入倉配置費</span></label>
+                    <div class="check-desc">新 ASIN 前 100 件入倉免 Inbound Placement Service 費用</div>
+                </div>
+            </div>
+
+            <div class="savings-highlight" id="savingsSummary" style="display:none;">
+                <div class="savings-title">✅ 已勾選優惠 — 每件預估節省</div>
+                <div id="savingsDetail"></div>
+            </div>
+        </div>
+
+        <!-- 結果 -->
+        <div class="card result-card">
+            <div class="card-title" data-zh="📊 利潤分析" data-en="📊 Profit Analysis">📊 利潤分析</div>
+            <div class="result-row"><span class="label" data-zh="售價" data-en="Price">售價</span><span class="value" id="r-price">-</span></div>
+            <div class="result-section-title" data-zh="— 開店 & 產品 —" data-en="— Account & Product —">— 開店 & 產品 —</div>
+            <div class="result-row"><span class="label" data-zh="產品成本 (COGS)" data-en="Product Cost (COGS)">產品成本 (COGS)</span><span style="display:flex;align-items:center;"><span class="value" id="r-cogs">-</span><span class="pct" id="r-cogs-pct"></span></span></div>
+            <div class="result-row advanced-only"><span class="label" data-zh="帳戶月費分攤" data-en="Account Fee/unit">帳戶月費分攤</span><span style="display:flex;align-items:center;"><span class="value" id="r-account">-</span><span class="pct" id="r-account-pct"></span></span></div>
+            <div class="result-section-title" data-zh="— 銷售佣金 —" data-en="— Referral Fee —">— 銷售佣金 —</div>
+            <div class="result-row"><span class="label">銷售佣金 (<span id="r-ref-pct">15</span>%)</span><span style="display:flex;align-items:center;"><span class="value" id="r-referral">-</span><span class="pct" id="r-referral-cost-pct"></span></span></div>
+            <div class="result-row fba-only" id="r-brand-rebate-row" style="display:none;"><span class="label" style="color:#10b981;">↳ 品牌退傭 (<span id="r-rebate-pct">0</span>%)</span><span class="value" style="color:#10b981;" id="r-brand-rebate">-</span></div>
+            <div class="result-section-title fba-only" data-zh="— 物流運輸 (FBA) —" data-en="— Logistics (FBA) —">— 物流運輸 (FBA) —</div>
+            <div class="result-section-title fbm-only" data-zh="— 物流運輸 (FBM) —" data-en="— Logistics (FBM) —">— 物流運輸 (FBM) —</div>
+            <div class="result-row fba-only"><span class="label" data-zh="頭程運費" data-en="Inbound Shipping">頭程運費</span><span style="display:flex;align-items:center;"><span class="value" id="r-ship">-</span><span class="pct" id="r-ship-pct"></span></span></div>
+            <div class="result-row fba-only"><span class="label" data-zh="FBA 配送費" data-en="FBA Fulfillment">FBA 配送費</span><span style="display:flex;align-items:center;"><span class="value" id="r-fba">-</span><span class="pct" id="r-fba-pct"></span></span></div>
+            <div class="result-row fba-only"><span class="label" data-zh="FBA 倉儲費" data-en="FBA Storage">FBA 倉儲費 (<span id="r-storage-months">3</span><span data-zh="個月" data-en="mo">個月</span>)</span><span style="display:flex;align-items:center;"><span class="value" id="r-storage">-</span><span class="pct" id="r-storage-pct"></span></span></div>
+            <div class="result-row fba-only"><span class="label">Inbound Placement</span><span style="display:flex;align-items:center;"><span class="value" id="r-inbound">-</span><span class="pct" id="r-inbound-pct"></span></span></div>
+            <div class="result-row fbm-only"><span class="label" data-zh="FBM 配送費" data-en="FBM Shipping">FBM 配送費</span><span style="display:flex;align-items:center;"><span class="value" id="r-fbm-ship">-</span><span class="pct" id="r-fbm-ship-pct"></span></span></div>
+            <div class="result-row fbm-only"><span class="label" data-zh="進口關稅" data-en="Import Duty">進口關稅</span><span style="display:flex;align-items:center;"><span class="value" id="r-fbm-duty">-</span><span class="pct" id="r-fbm-duty-pct"></span></span></div>
+            <div class="result-row fbm-only"><span class="label" data-zh="包裝材料" data-en="Packaging">包裝材料</span><span style="display:flex;align-items:center;"><span class="value" id="r-fbm-pack">-</span><span class="pct" id="r-fbm-pack-pct"></span></span></div>
+            <div class="result-row fbm-only"><span class="label" data-zh="客服 & 退貨處理" data-en="CS & Returns">客服 & 退貨處理</span><span style="display:flex;align-items:center;"><span class="value" id="r-fbm-cs">-</span><span class="pct" id="r-fbm-cs-pct"></span></span></div>
+            <div class="result-section-title advanced-only" data-zh="— 營運成本 —" data-en="— Operating Costs —">— 營運成本 —</div>
+            <div class="result-row advanced-only"><span class="label">廣告 (TACoS <span id="r-tacos-pct">12</span>%)</span><span style="display:flex;align-items:center;"><span class="value" id="r-ads">-</span><span class="pct" id="r-ads-pct"></span></span></div>
+            <div class="result-row advanced-only"><span class="label">Vine 評論費</span><span style="display:flex;align-items:center;"><span class="value" id="r-vine">-</span><span class="pct" id="r-vine-pct"></span></span></div>
+            <div class="result-row advanced-only"><span class="label">退貨損失 (<span id="r-ret-pct">3</span>%)</span><span style="display:flex;align-items:center;"><span class="value" id="r-return">-</span><span class="pct" id="r-return-cost-pct"></span></span></div>
+            <div class="result-row advanced-only"><span class="label" data-zh="退款管理費" data-en="Refund Admin Fee">退款管理費</span><span style="display:flex;align-items:center;"><span class="value" id="r-refund-admin">-</span><span class="pct" id="r-refund-admin-pct"></span></span></div>
+            <div class="result-row advanced-only"><span class="label" data-zh="其他費用" data-en="Other Fees">其他費用</span><span style="display:flex;align-items:center;"><span class="value" id="r-other">-</span><span class="pct" id="r-other-pct"></span></span></div>
+            <div class="result-row advanced-only" id="r-promo-row" style="display:none;"><span class="label" style="color:#10b981;">🎁 優惠折抵</span><span class="value" style="color:#10b981;" id="r-promo">-</span></div>
+
+            <div class="result-highlight">
+                <div class="sub" data-zh="單件淨利潤" data-en="Net Profit per Unit">單件淨利潤</div>
+                <div class="big-number" id="r-profit">-</div>
+                <div class="sub">
+                    利潤率 <span id="r-margin">-</span> ｜
+                    單件總成本 <span id="r-total-cost">-</span> ｜
+                    ROI <span id="r-roi">-</span>
+                </div>
+            </div>
+
+            <div class="result-section-title" style="margin-top:1rem;" data-zh="— 月度預估 —" data-en="— Monthly Estimate —">— 月度預估 —</div>
+            <div class="result-row"><span class="label" data-zh="月營收" data-en="Monthly Revenue">月營收</span><span class="value" id="r-m-rev">-</span></div>
+            <div class="result-row"><span class="label" data-zh="月淨利潤 (USD)" data-en="Monthly Profit (USD)">月淨利潤 (USD)</span><span class="value" id="r-m-profit">-</span></div>
+        </div>
+
+        <!-- 成本結構圖 -->
+        <div class="card full-width">
+            <div class="card-title" data-zh="📈 成本結構分析" data-en="📈 Cost Breakdown">📈 成本結構分析</div>
+            <div class="breakdown-bar" id="costBar"></div>
+            <div class="legend" id="costLegend"></div>
+        </div>
+
+
+        <!-- 優惠方案說明 -->
+        <div class="card full-width advanced-only">
+            <div class="card-title" data-zh="🎁 新賣家優惠方案說明" data-en="🎁 New Seller Incentives Guide">🎁 新賣家優惠方案說明</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div>
+                    <div style="font-size:0.8rem;font-weight:600;margin-bottom:0.4rem;color:var(--accent);">新賣家入門大禮包 (最高 $50,000+)</div>
+                    <table class="scenario-table" style="margin-top:0;">
+                        <thead><tr><th>優惠項目</th><th>價值</th><th>期限</th></tr></thead>
+                        <tbody>
+                            <tr><td>Sponsored Products 廣告折價券</td><td>最高 $1,000*</td><td>90 天</td></tr>
+                            <tr><td>Amazon Coupon 額度</td><td>$50</td><td>90 天</td></tr>
+                            <tr><td>Vine 評論計畫額度</td><td>$200</td><td>品牌註冊後 90 天</td></tr>
+                            <tr><td>FBA 入倉運費抵用金</td><td>$100~$200</td><td>首次入倉</td></tr>
+                            <tr><td>品牌退傭 (Brand Bonus)**</td><td>最高 $52,500</td><td>12 個月</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="hint" style="margin-top:0.3rem;">需 Professional 帳戶 + 首次上架 90 天內完成 FBA 入倉<br>*廣告折價券為階梯式：花費 $50→得$50、$200→得$200、$1K+→得$1,000（需 2025/8/20 後首次建立廣告）<br>**品牌退傭已整合至上方「銷售佣金」區塊，可獨立設定</div>
+                </div>
+                <div>
+                    <div style="font-size:0.8rem;font-weight:600;margin-bottom:0.4rem;color:var(--accent);">FBA 物流新選品計畫</div>
+                    <table class="scenario-table" style="margin-top:0;">
+                        <thead><tr><th>優惠項目</th><th>內容</th><th>期限</th></tr></thead>
+                        <tbody>
+                            <tr><td>免費倉儲</td><td>Std 100件 / OS 50件</td><td>入倉後 120 天</td></tr>
+                            <tr><td>免費退貨處理</td><td>Std 前 20 件</td><td>入倉後 180 天</td></tr>
+                            <tr><td>銷售回饋 10%</td><td>抵扣次月配送費</td><td>新 ASIN 期間</td></tr>
+                            <tr><td>Vine 註冊 75 折</td><td>每 ASIN 省 25%</td><td>入倉 5-60 天</td></tr>
+                            <tr><td>免 Inbound Placement</td><td>前 100 件免費</td><td>新 ASIN 期間</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="hint" style="margin-top:0.3rem;">需 Professional 帳戶 + IPI ≥ 300 + 新 ASIN（從未入過 FBA 倉）</div>
+                </div>
+            </div>
+            <div class="promo-info-box">
+                <div class="info-title">💡 台灣賣家專屬：兩個方案可以疊加使用</div>
+                新賣家大禮包 + FBA 新選品計畫可同時享有。Brand Bonus 會先適用，之後再適用 New Selection 回饋。
+                建議在開帳後 90 天內完成 FBA 入倉、啟動廣告和 Vine，才能最大化所有優惠。
+                <br>詳情：<a href="https://gs.amazon.com.tw/benefits" target="_blank" rel="noopener" style="color:var(--accent);">Amazon 全球開店官方優惠頁</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+<footer>
+    <p>
+        ⚠️ 本工具僅供參考估算，實際費用以 <a href="https://sellercentral.amazon.com/hz/fba/profitabilitycalculator/index" target="_blank" rel="noopener">Amazon Revenue Calculator</a> 為準。
+        費率資料參考 <a href="https://gs.amazon.com.tw/pricing" target="_blank" rel="noopener">Amazon 全球開店費率頁</a>
+        ｜ 優惠方案參考 <a href="https://gs.amazon.com.tw/benefits" target="_blank" rel="noopener">Amazon 全球開店優惠頁</a>。
+    </p>
+    <p style="margin-top:0.5rem;">
+        Made with ☕ for 台灣 Amazon 賣家 ｜ <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+    </p>
+    <p style="margin-top:0.5rem;" data-zh="如有問題或改善建議，請聯繫 Kai Tung ｜ <a href='mailto:[email]'>[email]</a>" data-en="Questions or suggestions? Contact Kai Tung ｜ <a href='mailto:[email]'>[email]</a>">
+        如有問題或改善建議，請聯繫 Kai Tung ｜ <a href="mailto:[email]">[email]</a>
+    </p>
+</footer>
+
+<script>
+/* ===== 幣別系統 ===== */
+let currentLang = 'zh'; // 'zh' or 'en'
+let currentMode = 'basic'; // 'basic' or 'advanced'
+
+function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-toggle button').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-mode-' + mode).classList.add('active');
+    const container = document.querySelector('.container');
+    container.classList.remove('mode-advanced', 'mode-fbm', 'mode-fbm-tw');
+
+    const descZh = {
+        basic: 'FBA 基礎：產品成本 + 佣金 + FBA + 頭程物流',
+        advanced: 'FBA 進階：基礎 + 廣告 + 退換貨 + Vine + 帳戶費 + 優惠方案',
+        fbm: 'FBM 自配送：產品成本 + 佣金 + 自行配送費 + 客服退貨',
+        'fbm-tw': '台灣→美國：輸入台灣產品資訊，估算 Amazon 額外成本和建議售價'
+    };
+    const descEn = {
+        basic: 'FBA Basic: COGS + Referral + FBA + Shipping',
+        advanced: 'FBA Advanced: Basic + Ads + Returns + Vine + Account + Incentives',
+        fbm: 'FBM: COGS + Referral + Self-fulfillment + CS & Returns',
+        'fbm-tw': 'TW→US: Enter Taiwan product info, estimate Amazon extra costs & suggested price'
+    };
+
+    if (mode === 'advanced') container.classList.add('mode-advanced');
+    if (mode === 'fbm') container.classList.add('mode-fbm');
+    if (mode === 'fbm-tw') container.classList.add('mode-fbm-tw');
+
+    document.getElementById('modeDesc').textContent = currentLang === 'zh' ? descZh[mode] : descEn[mode];
+
+    if (mode === 'fbm-tw') calcTw();
+    else calc();
+}
+
+/* ===== 多語言系統 ===== */
+function setLang(lang) {
+    currentLang = lang;
+    document.querySelectorAll('.lang-toggle button').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-lang-' + lang).classList.add('active');
+    document.documentElement.lang = lang === 'zh' ? 'zh-TW' : 'en';
+    // 更新所有有 data-zh / data-en 的元素
+    document.querySelectorAll('[data-' + lang + ']').forEach(el => {
+        const val = el.getAttribute('data-' + lang);
+        if (el.tagName === 'INPUT' || el.tagName === 'BUTTON') {
+            el.textContent = val;
+        } else {
+            el.innerHTML = val;
+        }
+    });
+    calc();
+}
+/* ===== 品類佣金資料 (來源: Amazon 全球開店官方) ===== */
+const CATEGORIES = {
+    home:        { pct: 15, note: '固定 15%', tiered: false },
+    sports:      { pct: 15, note: '固定 15%', tiered: false },
+    toys:        { pct: 15, note: '固定 15%', tiered: false },
+    pet:         { pct: 15, note: '固定 15%', tiered: false },
+    health:      { pct: 15, note: '固定 15%', tiered: false },
+    office:      { pct: 15, note: '固定 15%', tiered: false },
+    lawn:        { pct: 15, note: '固定 15%', tiered: false },
+    beauty:      { pct: 15, note: '≤$10 收 8%，>$10 收 15%', tiered: true, threshold: 10, lowPct: 8 },
+    baby:        { pct: 15, note: '≤$10 收 8%，>$10 收 15%', tiered: true, threshold: 10, lowPct: 8 },
+    clothing:    { pct: 17, note: '固定 17%（退貨率高，注意）', tiered: false },
+    electronics: { pct: 8,  note: '固定 8%（最低標準費率）', tiered: false },
+    camera:      { pct: 8,  note: '固定 8%', tiered: false },
+    auto:        { pct: 12, note: '固定 12%', tiered: false },
+    furniture:   { pct: 15, note: '≤$200 收 15%，>$200 部分收 10%', tiered: true, threshold: 200, lowPct: 10, above: true },
+    jewelry:     { pct: 20, note: '≤$250 收 20%，>$250 部分收 5%', tiered: true, threshold: 250, lowPct: 5, above: true },
+    videogames:  { pct: 15, note: '固定 15%', tiered: false },
+    musical:     { pct: 15, note: '固定 15%', tiered: false },
+    books:       { pct: 15, note: '固定 15% + $1.80 交易手續費', tiered: false, extraPerItem: 1.80 }
+};
+
+/* ===== FBA 配送費率表 (2026, 非服裝) ===== */
+function calcFbaFee(weightOz, dimLin, dimWin, dimHin) {
+    // 判斷尺寸分級
+    const maxSide = Math.max(dimLin, dimWin, dimHin);
+    const medSide = [dimLin, dimWin, dimHin].sort((a,b) => a-b)[1];
+    const minSide = Math.min(dimLin, dimWin, dimHin);
+    const girth = 2 * (medSide + minSide);
+    const lengthGirth = maxSide + girth;
+    const weightLb = weightOz / 16;
+    // 體積重 (lb)
+    const dimWeight = (dimLin * dimWin * dimHin) / 139;
+    const shipWeight = Math.max(weightLb, dimWeight);
+
+    let tier = '';
+    let fee = 0;
+
+    // Small Standard: ≤16oz, 最長邊≤15in, 次長≤12in, 最短≤0.75in... 
+    // 簡化: ≤16oz 且 max≤18, 且 fits 18x14x8
+    const fitsStandard = maxSide <= 18 && medSide <= 14 && minSide <= 8;
+
+    if (weightOz <= 16 && fitsStandard && maxSide <= 15) {
+        tier = 'Small Standard';
+        if (weightOz <= 4) { fee = 3.06; }
+        else if (weightOz <= 8) { fee = 3.15; }
+        else if (weightOz <= 12) { fee = 3.43; }
+        else { fee = 3.58; }
+    } else if (shipWeight <= 20 && fitsStandard) {
+        tier = 'Large Standard';
+        if (shipWeight <= 1) { fee = 4.75; }
+        else if (shipWeight <= 2) { fee = 4.75; }
+        else if (shipWeight <= 3) { fee = 5.40; }
+        else { fee = 7.17 + Math.max(0, shipWeight - 3) * 0.16; }
+    } else if (shipWeight <= 50 && lengthGirth <= 130) {
+        tier = 'Large Bulky';
+        fee = 9.73 + Math.max(0, shipWeight - 1) * 0.42;
+    } else {
+        tier = 'Extra Large';
+        fee = 89.98 + Math.max(0, shipWeight - 90) * 0.83;
+    }
+
+    return { fee: Math.round(fee * 100) / 100, tier, shipWeight: Math.round(shipWeight * 100) / 100 };
+}
+
+/* ===== 倉儲費計算 ===== */
+let currentSeason = 'offpeak';
+const STORAGE_RATES = { offpeak: 0.78, peak: 2.40 };
+
+function calcStorageFee(dimLin, dimWin, dimHin) {
+    const cuft = (dimLin * dimWin * dimHin) / 1728; // in³ → cuft
+    const rate = STORAGE_RATES[currentSeason];
+    return { fee: Math.round(cuft * rate * 100) / 100, cuft: Math.round(cuft * 1000) / 1000, rate };
+}
+
+/* ===== 佣金計算 (含階梯費率) ===== */
+function calcReferralFee(price, catKey) {
+    const cat = CATEGORIES[catKey];
+    if (!cat) return price * 0.15;
+    if (!cat.tiered) {
+        return price * (cat.pct / 100);
+    }
+    // 階梯費率
+    if (cat.above) {
+        // furniture/jewelry: 低於門檻用高費率，超過部分用低費率
+        if (price <= cat.threshold) return price * (cat.pct / 100);
+        return cat.threshold * (cat.pct / 100) + (price - cat.threshold) * (cat.lowPct / 100);
+    } else {
+        // beauty/baby: ≤門檻用低費率，>門檻用高費率
+        if (price <= cat.threshold) return price * (cat.lowPct / 100);
+        return price * (cat.pct / 100);
+    }
+}
+
+/* ===== 退款管理費 ===== */
+function calcRefundAdminFee(price, catKey) {
+    const referral = calcReferralFee(price, catKey);
+    return Math.min(referral * 0.20, 5.00);
+}
+
+/* ===== Inbound Placement 費估算 ===== */
+function estimateInboundFee(tier) {
+    if (tier.includes('Small')) return 0.15;
+    if (tier.includes('Large Standard')) return 0.27;
+    if (tier.includes('Large Bulky')) return 0.79;
+    return 1.58;
+}
+
+/* ===== 優惠方案計算 ===== */
+function isChecked(id) { return document.getElementById(id).checked; }
+
+function calcPromoSavings(price, catKey, fbaFee, storageFee, inboundFee, monthlySales) {
+    let perUnitSaving = 0;
+    let monthlyFixedSaving = 0;
+    let details = [];
+
+    // --- 新賣家入門大禮包 ---
+    if (isChecked('nsi-ads')) {
+        // 廣告金，分攤到 90 天（~3個月）的銷量
+        const adsAmount = getVal('nsiAdsAmount');
+        const saving = adsAmount / (Math.max(1, monthlySales) * 3);
+        perUnitSaving += saving;
+        details.push({ label: '廣告抵用金分攤', value: saving });
+    }
+    if (isChecked('nsi-coupon')) {
+        const saving = 50 / (Math.max(1, monthlySales) * 3);
+        perUnitSaving += saving;
+        details.push({ label: 'Coupon 額度分攤', value: saving });
+    }
+    if (isChecked('nsi-vine')) {
+        const saving = 200 / (Math.max(1, monthlySales) * 3);
+        perUnitSaving += saving;
+        details.push({ label: 'Vine 額度分攤', value: saving });
+    }
+    if (isChecked('nsi-ship')) {
+        const saving = 100 / (Math.max(1, monthlySales) * 3);
+        perUnitSaving += saving;
+        details.push({ label: 'FBA 運費抵用金分攤', value: saving });
+    }
+
+    // --- FBA 新選品計畫 ---
+    if (isChecked('fns-storage')) {
+        perUnitSaving += storageFee;
+        details.push({ label: '免倉儲費 (120天)', value: storageFee });
+    }
+    if (isChecked('fns-return')) {
+        // 免退貨處理費，估算：退貨率 × FBA fee（退貨處理費 ≈ FBA 配送費）
+        const retRate = getVal('returnRate') / 100;
+        const saving = fbaFee * retRate;
+        perUnitSaving += saving;
+        details.push({ label: '免退貨處理費', value: saving });
+    }
+    if (isChecked('fns-rebate')) {
+        // 10% 銷售回饋，抵扣配送費
+        const rebate = price * 0.10;
+        const saving = Math.min(rebate, fbaFee); // 最多抵扣到配送費為 0
+        perUnitSaving += saving;
+        details.push({ label: '10% 銷售回饋', value: saving });
+    }
+    if (isChecked('fns-vine')) {
+        // Vine 75 折，小額分攤，簡化估算
+        const saving = 0.05; // 象徵性分攤
+        perUnitSaving += saving;
+        details.push({ label: 'Vine 75折省下', value: saving });
+    }
+    if (isChecked('fns-inbound')) {
+        perUnitSaving += inboundFee;
+        details.push({ label: '免 Inbound Placement', value: inboundFee });
+    }
+
+    return { perUnitSaving, monthlyFixedSaving, details };
+}
+
+/* ===== 工具函數 ===== */
+function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function fmt(n) { return (n >= 0 ? '$' : '-$') + Math.abs(n).toFixed(2); }
+function fmtK(n) { const p = n < 0 ? '-$' : '$'; return p + Math.abs(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+/* ===== 單位切換 ===== */
+let weightUnit = 'g';   // 'g', 'kg', 'lb'
+let dimUnit = 'cm';     // 'cm', 'in'
+
+function setWeightUnit(unit) {
+    const input = document.getElementById('weightInput');
+    const oldVal = parseFloat(input.value) || 0;
+    // 先轉回公克
+    let grams;
+    if (weightUnit === 'g') grams = oldVal;
+    else if (weightUnit === 'kg') grams = oldVal * 1000;
+    else grams = oldVal * 453.592;
+    // 再轉到新單位
+    let newVal;
+    if (unit === 'g') { newVal = grams; input.step = '10'; }
+    else if (unit === 'kg') { newVal = grams / 1000; input.step = '0.01'; }
+    else { newVal = grams / 453.592; input.step = '0.01'; }
+    input.value = parseFloat(newVal.toFixed(unit === 'g' ? 0 : 2));
+    weightUnit = unit;
+    document.getElementById('weightUnitLabel').textContent = unit;
+    document.querySelectorAll('[id^="btn-wt-"]').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-wt-' + unit).classList.add('active');
+    calc();
+}
+
+function setDimUnit(unit) {
+    const ids = ['dimL', 'dimW', 'dimH'];
+    ids.forEach(id => {
+        const input = document.getElementById(id);
+        const oldVal = parseFloat(input.value) || 0;
+        let newVal;
+        if (dimUnit === 'cm' && unit === 'in') { newVal = oldVal * 0.393701; input.step = '0.1'; }
+        else if (dimUnit === 'in' && unit === 'cm') { newVal = oldVal * 2.54; input.step = '0.5'; }
+        else newVal = oldVal;
+        input.value = parseFloat(newVal.toFixed(unit === 'in' ? 1 : 1));
+    });
+    dimUnit = unit;
+    document.getElementById('dimUnitLabel').textContent = unit;
+    document.querySelectorAll('[id^="btn-dim-"]').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-dim-' + unit).classList.add('active');
+    calc();
+}
+
+// 取得公克（統一內部用公克計算）
+function getWeightGrams() {
+    const v = getVal('weightInput');
+    if (weightUnit === 'g') return v;
+    if (weightUnit === 'kg') return v * 1000;
+    return v * 453.592; // lb
+}
+
+// 取得公分（統一內部用公分計算）
+function getDimCm(id) {
+    const v = getVal(id);
+    if (dimUnit === 'cm') return v;
+    return v * 2.54; // in → cm
+}
+
+/* ===== 品牌退傭切換 ===== */
+function setBrandRebate(level) {
+    document.querySelectorAll('[id^="btn-rebate-"]').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-rebate-' + level).classList.add('active');
+    if (level === 'off') {
+        document.getElementById('brandRebatePct').value = 0;
+        document.getElementById('brandRebateNote').textContent = '需有美國商標 + 完成 Amazon Brand Registry';
+    } else if (level === '10') {
+        document.getElementById('brandRebatePct').value = 10;
+        document.getElementById('brandRebateNote').textContent = '前 $50,000 銷售額享 10% 退傭（抵扣佣金）';
+    } else {
+        document.getElementById('brandRebatePct').value = 5;
+        document.getElementById('brandRebateNote').textContent = '超過 $50,000 銷售額享 5% 退傭（最高 $52,500）';
+    }
+    calc();
+}
+
+const SHIP_RATES = { sea: 1.0, air: 4.5, express: 8.0, custom: null };
+
+function onShipMethodChange() {
+    const m = document.getElementById('shipMethod').value;
+    if (SHIP_RATES[m] !== null) document.getElementById('shipRate').value = SHIP_RATES[m];
+    calc();
+}
+
+/* ===== FBM 配送方式切換 ===== */
+const FBM_METHODS = {
+    'express-ddp': { ship: 12.00, duty: 0, pack: 0.50, cs: 1.00, note: '國際快遞 DDP 市場行情：0.5kg 約 $8-15，1kg 約 $12-20' },
+    'overseas-wh': { ship: 5.50, duty: 0.50, pack: 0.30, cs: 1.00, note: '海外倉代發：頭程分攤 + 美國境內配送，0.5kg 約 $4-7' },
+    'custom-fbm': { ship: null, duty: null, pack: null, cs: null, note: '請自行填入實際費率' }
+};
+
+function onFbmMethodChange() {
+    const m = document.getElementById('fbmMethod').value;
+    const info = FBM_METHODS[m];
+    if (info.ship !== null) {
+        document.getElementById('fbmShipCost').value = info.ship;
+        document.getElementById('fbmDuty').value = info.duty;
+        document.getElementById('fbmPackCost').value = info.pack;
+        document.getElementById('fbmCsFee').value = info.cs;
+    }
+    document.getElementById('fbmShipNote').textContent = info.note;
+    calc();
+}
+
+function onCategoryChange() {
+    const catKey = document.getElementById('category').value;
+    const cat = CATEGORIES[catKey];
+    if (cat) {
+        const price = getVal('sellPrice');
+        let effectivePct = cat.pct;
+        if (cat.tiered && !cat.above && price <= cat.threshold) effectivePct = cat.lowPct;
+        document.getElementById('referralPct').value = effectivePct;
+        document.getElementById('referralNote').textContent = cat.note;
+    }
+    const price = getVal('sellPrice');
+    document.getElementById('refundAdminFee').value = calcRefundAdminFee(price, catKey).toFixed(2);
+    calc();
+}
+
+function setSeason(s) {
+    currentSeason = s;
+    document.getElementById('btn-offpeak').classList.toggle('active', s === 'offpeak');
+    document.getElementById('btn-peak').classList.toggle('active', s === 'peak');
+    calc();
+}
+
+/* ===== 尺寸/重量優化提示 ===== */
+function getSizeTierOptimizationHint(wOz, dLin, dWin, dHin, currentInfo) {
+    const currentFee = currentInfo.fee;
+    const currentTier = currentInfo.tier;
+
+    // 檢查是否接近更低的 tier
+    // Small Standard 門檻: ≤16oz, max≤15in, fits 18x14x8
+    // Large Standard 門檻: fits 18x14x8, ≤20lb
+    const maxSide = Math.max(dLin, dWin, dHin);
+    const medSide = [dLin, dWin, dHin].sort((a,b) => a-b)[1];
+    const minSide = Math.min(dLin, dWin, dHin);
+
+    if (currentTier === 'Small Standard') {
+        // 檢查是否接近更低的重量區間
+        if (wOz > 12 && wOz <= 16) {
+            const saving = currentFee - 3.43;
+            if (saving > 0.05) {
+                const targetG = Math.floor(12 / 0.03527396);
+                return '💡 若減重至 ' + targetG + 'g (12oz) 以下，可省 $' + saving.toFixed(2) + '/件';
+            }
+        } else if (wOz > 8 && wOz <= 12) {
+            const saving = currentFee - 3.15;
+            if (saving > 0.05) {
+                const targetG = Math.floor(8 / 0.03527396);
+                return '💡 若減重至 ' + targetG + 'g (8oz) 以下，可省 $' + saving.toFixed(2) + '/件';
+            }
+        } else if (wOz > 4 && wOz <= 8) {
+            const saving = currentFee - 3.06;
+            if (saving > 0.05) {
+                const targetG = Math.floor(4 / 0.03527396);
+                return '💡 若減重至 ' + targetG + 'g (4oz) 以下，可省 $' + saving.toFixed(2) + '/件';
+            }
+        }
+    } else if (currentTier === 'Large Standard') {
+        // 檢查是否能降到 Small Standard
+        if (wOz <= 20 && maxSide <= 15) {
+            // 接近 16oz 門檻
+            const targetFee = wOz <= 16 ? 3.58 : currentFee;
+            if (wOz > 16 && wOz <= 20) {
+                const saving = currentFee - 3.58;
+                if (saving > 0.10) {
+                    const targetG = Math.floor(16 / 0.03527396);
+                    return '💡 若減重至 ' + targetG + 'g (16oz/1lb) 以下，可降為 Small Standard，省 $' + saving.toFixed(2) + '/件';
+                }
+            }
+        }
+        // 檢查重量區間
+        const shipWeight = currentInfo.shipWeight;
+        if (shipWeight > 2 && shipWeight <= 3) {
+            const saving = currentFee - 4.75;
+            if (saving > 0.10) {
+                const targetG = Math.floor(2 * 453.592);
+                return '💡 若減重至 ' + targetG + 'g (2lb) 以下，可省 $' + saving.toFixed(2) + '/件';
+            }
+        } else if (shipWeight > 3 && shipWeight <= 5) {
+            const saving = currentFee - 5.40;
+            if (saving > 0.10) {
+                const targetG = Math.floor(3 * 453.592);
+                return '💡 若減重至 ' + targetG + 'g (3lb) 以下，可省 $' + saving.toFixed(2) + '/件';
+            }
+        }
+    } else if (currentTier === 'Large Bulky') {
+        // 檢查是否能降到 Large Standard
+        if (maxSide <= 18 && medSide <= 14 && minSide <= 8) {
+            const saving = currentFee - 7.17;
+            if (saving > 0.50) {
+                return '💡 尺寸已符合 Standard，若減重至 20lb 以下可降為 Large Standard，省 $' + saving.toFixed(2) + '/件';
+            }
+        }
+    }
+    return null;
+}
+
+/* ===== 主計算 ===== */
+function calcForPrice(price) {
+    const catKey = document.getElementById('category').value;
+    const isBasic = currentMode === 'basic';
+    const isFbm = currentMode === 'fbm';
+    const cogsUsd = getVal('productCost');
+    const referralCost = calcReferralFee(price, catKey);
+    const brandRebatePct = isFbm ? 0 : getVal('brandRebatePct') / 100;
+    const brandRebate = price * brandRebatePct;
+    const monthlySales = Math.max(1, getVal('monthlySales'));
+    const extraPerItem = (CATEGORIES[catKey] && CATEGORIES[catKey].extraPerItem) || 0;
+
+    // FBA 專屬
+    const weightKg = getWeightGrams() / 1000;
+    const shipCost = isFbm ? 0 : getVal('shipRate') * weightKg;
+    const fbaFee = isFbm ? 0 : getVal('fbaFee');
+    const storageFeeMonthly = isFbm ? 0 : getVal('storageFee');
+    const storageMonths = isFbm ? 0 : getVal('storageMonths');
+    const storageFee = storageFeeMonthly * storageMonths;
+    const inboundFee = isFbm ? 0 : getVal('inboundFee');
+
+    // FBM 專屬
+    const fbmShipCost = isFbm ? getVal('fbmShipCost') : 0;
+    const fbmDuty = isFbm ? getVal('fbmDuty') : 0;
+    const fbmPackCost = isFbm ? getVal('fbmPackCost') : 0;
+    const fbmCsFee = isFbm ? getVal('fbmCsFee') : 0;
+
+    // 進階版才計算的項目
+    const accountPerUnit = isBasic ? 0 : getVal('accountFee') / monthlySales;
+    const adsCost = isBasic ? 0 : price * (getVal('tacos') / 100);
+    const returnPct = isBasic ? 0 : getVal('returnRate') / 100;
+    const returnCost = price * returnPct;
+    const refundAdmin = isBasic ? 0 : getVal('refundAdminFee') * returnPct;
+    const vineFee = isBasic ? 0 : getVal('vineFee');
+    const otherFee = isBasic ? 0 : getVal('otherFee');
+
+    // 優惠折抵 (僅 FBA 進階版)
+    const promo = (isBasic || isFbm) ? { perUnitSaving: 0, details: [] } : calcPromoSavings(price, catKey, fbaFee, storageFee, inboundFee, monthlySales);
+    const promoSaving = promo.perUnitSaving;
+
+    const totalCost = cogsUsd + shipCost + fbaFee + storageFee + inboundFee + fbmShipCost + fbmDuty + fbmPackCost + fbmCsFee + referralCost - brandRebate + accountPerUnit + adsCost + vineFee + returnCost + refundAdmin + otherFee + extraPerItem - promoSaving;
+    const profit = price - totalCost;
+    const margin = price > 0 ? (profit / price) * 100 : 0;
+    const roi = totalCost > 0 ? (profit / totalCost) * 100 : 0;
+
+    return { price, cogsUsd, shipCost, fbaFee, storageFee, inboundFee, fbmShipCost, fbmDuty, fbmPackCost, fbmCsFee, referralCost, brandRebate, accountPerUnit, adsCost, vineFee, returnCost, refundAdmin, otherFee, extraPerItem, promoSaving, promo, totalCost, profit, margin, roi };
+}
+
+function calc() {
+    const price = getVal('sellPrice');
+    const catKey = document.getElementById('category').value;
+    const monthlySales = getVal('monthlySales');
+
+    // 自動估算 FBA 費
+    const wG = getWeightGrams();
+    const dL = getDimCm('dimL'), dW = getDimCm('dimW'), dH = getDimCm('dimH');
+    const wOz = wG * 0.03527396;
+    const dLin = dL * 0.393701, dWin = dW * 0.393701, dHin = dH * 0.393701;
+    const fbaInfo = calcFbaFee(wOz, dLin, dWin, dHin);
+    document.getElementById('fbaFee').value = fbaInfo.fee;
+    document.getElementById('fbaTierNote').textContent = fbaInfo.tier + ' (' + fbaInfo.shipWeight.toFixed(1) + ' lb) → $' + fbaInfo.fee.toFixed(2);
+
+    // 尺寸/重量優化提示
+    const optEl = document.getElementById('fbaTierOptimize');
+    const optHint = getSizeTierOptimizationHint(wOz, dLin, dWin, dHin, fbaInfo);
+    if (optHint) { optEl.textContent = optHint; optEl.style.display = 'block'; }
+    else { optEl.style.display = 'none'; }
+
+    // 頭程運費計算明細
+    const shipWeightKg = wG / 1000;
+    const shipCostEst = getVal('shipRate') * shipWeightKg;
+    document.getElementById('shipCalcNote').textContent = shipWeightKg.toFixed(2) + ' kg × $' + getVal('shipRate').toFixed(2) + '/kg = $' + shipCostEst.toFixed(2) + '/件';
+
+    // 自動估算倉儲費
+    const storInfo = calcStorageFee(dLin, dWin, dHin);
+    document.getElementById('storageFee').value = storInfo.fee;
+    document.getElementById('storageNote').textContent = '體積 ' + storInfo.cuft.toFixed(3) + ' cuft × $' + storInfo.rate.toFixed(2) + ' = $' + storInfo.fee.toFixed(2) + '/件/月';
+
+    // 自動估算 Inbound Placement
+    document.getElementById('inboundFee').value = estimateInboundFee(fbaInfo.tier);
+
+    // 自動更新佣金 (階梯費率)
+    {
+        const cat = CATEGORIES[catKey];
+        if (cat && cat.tiered) {
+            const effectiveRate = (calcReferralFee(price, catKey) / price * 100);
+            document.getElementById('referralPct').value = effectiveRate.toFixed(1);
+        }
+    }
+
+    // 自動更新退款管理費
+    document.getElementById('refundAdminFee').value = calcRefundAdminFee(price, catKey).toFixed(2);
+
+    const r = calcForPrice(price);
+
+    // 更新結果 (使用顯示幣別)
+    document.getElementById('r-price').textContent = fmt(r.price);
+    document.getElementById('r-cogs').textContent = '-' + fmt(r.cogsUsd);
+    document.getElementById('r-ship').textContent = '-' + fmt(r.shipCost);
+    document.getElementById('r-fba').textContent = '-' + fmt(r.fbaFee);
+    document.getElementById('r-storage').textContent = '-' + fmt(r.storageFee);
+    document.getElementById('r-storage-months').textContent = getVal('storageMonths');
+    document.getElementById('r-inbound').textContent = '-' + fmt(r.inboundFee);
+
+    // FBM 結果
+    document.getElementById('r-fbm-ship').textContent = '-' + fmt(r.fbmShipCost);
+    document.getElementById('r-fbm-duty').textContent = '-' + fmt(r.fbmDuty);
+    document.getElementById('r-fbm-pack').textContent = '-' + fmt(r.fbmPackCost);
+    document.getElementById('r-fbm-cs').textContent = '-' + fmt(r.fbmCsFee);
+
+    document.getElementById('r-ref-pct').textContent = (r.referralCost / r.price * 100).toFixed(1);
+    document.getElementById('r-referral').textContent = '-' + fmt(r.referralCost + r.extraPerItem);
+
+    // 品牌退傭顯示
+    const rebateRow = document.getElementById('r-brand-rebate-row');
+    if (r.brandRebate > 0.001) {
+        rebateRow.style.display = 'flex';
+        document.getElementById('r-rebate-pct').textContent = getVal('brandRebatePct');
+        document.getElementById('r-brand-rebate').textContent = '+' + fmt(r.brandRebate);
+    } else {
+        rebateRow.style.display = 'none';
+    }
+
+    document.getElementById('r-account').textContent = '-' + fmt(r.accountPerUnit);
+    document.getElementById('r-tacos-pct').textContent = getVal('tacos');
+    document.getElementById('r-ads').textContent = '-' + fmt(r.adsCost);
+    document.getElementById('r-vine').textContent = r.vineFee > 0 ? '-' + fmt(r.vineFee) : fmt(0);
+    document.getElementById('r-ret-pct').textContent = getVal('returnRate');
+    document.getElementById('r-return').textContent = '-' + fmt(r.returnCost);
+    document.getElementById('r-refund-admin').textContent = '-' + fmt(r.refundAdmin);
+    document.getElementById('r-other').textContent = '-' + fmt(r.otherFee);
+
+    // 成本百分比 (佔售價)
+    const pctOf = (v) => r.price > 0 ? (v / r.price * 100).toFixed(1) + '%' : '';
+    document.getElementById('r-cogs-pct').textContent = pctOf(r.cogsUsd);
+    document.getElementById('r-ship-pct').textContent = pctOf(r.shipCost);
+    document.getElementById('r-fba-pct').textContent = pctOf(r.fbaFee);
+    document.getElementById('r-storage-pct').textContent = pctOf(r.storageFee);
+    document.getElementById('r-inbound-pct').textContent = pctOf(r.inboundFee);
+    document.getElementById('r-fbm-ship-pct').textContent = pctOf(r.fbmShipCost);
+    document.getElementById('r-fbm-duty-pct').textContent = pctOf(r.fbmDuty);
+    document.getElementById('r-fbm-pack-pct').textContent = pctOf(r.fbmPackCost);
+    document.getElementById('r-fbm-cs-pct').textContent = pctOf(r.fbmCsFee);
+    document.getElementById('r-referral-cost-pct').textContent = pctOf(r.referralCost);
+    document.getElementById('r-account-pct').textContent = pctOf(r.accountPerUnit);
+    document.getElementById('r-ads-pct').textContent = pctOf(r.adsCost);
+    document.getElementById('r-vine-pct').textContent = pctOf(r.vineFee);
+    document.getElementById('r-return-cost-pct').textContent = pctOf(r.returnCost);
+    document.getElementById('r-refund-admin-pct').textContent = pctOf(r.refundAdmin);
+    document.getElementById('r-other-pct').textContent = pctOf(r.otherFee);
+
+    // 優惠折抵顯示
+    const promoRow = document.getElementById('r-promo-row');
+    if (r.promoSaving > 0.001) {
+        promoRow.style.display = 'flex';
+        document.getElementById('r-promo').textContent = '+' + fmt(r.promoSaving);
+    } else {
+        promoRow.style.display = 'none';
+    }
+
+    // 優惠摘要面板
+    const summaryEl = document.getElementById('savingsSummary');
+    const detailEl = document.getElementById('savingsDetail');
+    if (r.promo.details.length > 0) {
+        summaryEl.style.display = 'block';
+        const saveLbl = currentLang === 'zh' ? '每件合計節省' : 'Total saved/unit';
+        detailEl.innerHTML = r.promo.details.map(d =>
+            '<div class="savings-row"><span>' + d.label + '</span><span class="sv">+' + fmt(d.value) + '</span></div>'
+        ).join('') +
+        '<div class="savings-row" style="border-top:1px solid #10b981;margin-top:0.3rem;padding-top:0.3rem;font-weight:600;"><span>' + saveLbl + '</span><span class="sv">+' + fmt(r.promoSaving) + '</span></div>';
+    } else {
+        summaryEl.style.display = 'none';
+    }
+
+    const profitEl = document.getElementById('r-profit');
+    profitEl.textContent = fmt(r.profit);
+    profitEl.className = 'big-number ' + (r.margin >= 20 ? 'profit-positive' : r.margin >= 10 ? 'profit-warning' : 'profit-negative');
+    document.getElementById('r-margin').textContent = r.margin.toFixed(1) + '%';
+    document.getElementById('r-total-cost').textContent = fmt(r.totalCost);
+    document.getElementById('r-roi').textContent = r.roi.toFixed(1) + '%';
+
+    const mRev = price * monthlySales;
+    const mProfit = r.profit * monthlySales;
+    document.getElementById('r-m-rev').textContent = fmtK(mRev);
+    document.getElementById('r-m-profit').textContent = fmtK(mProfit);
+
+    // 成本結構條 (使用顯示幣別)
+    const items = [
+        { label: currentLang==='zh'?'產品成本':'COGS', value: r.cogsUsd, color: '#6366f1' },
+        { label: currentLang==='zh'?'頭程運費':'Shipping', value: r.shipCost, color: '#8b5cf6' },
+        { label: 'FBA', value: r.fbaFee, color: '#ec4899' },
+        { label: currentLang==='zh'?'倉儲':'Storage', value: r.storageFee, color: '#f43f5e' },
+        { label: 'Inbound', value: r.inboundFee, color: '#a855f7' },
+        { label: currentLang==='zh'?'佣金':'Referral', value: Math.max(0, r.referralCost - r.brandRebate), color: '#f59e0b' },
+        { label: currentLang==='zh'?'廣告':'Ads', value: r.adsCost, color: '#10b981' },
+        { label: 'Vine', value: r.vineFee, color: '#059669' },
+        { label: currentLang==='zh'?'帳戶費':'Account', value: r.accountPerUnit, color: '#d97706' },
+        { label: currentLang==='zh'?'退貨+退款':'Returns', value: r.returnCost + r.refundAdmin, color: '#6b7280' },
+        { label: currentLang==='zh'?'其他':'Other', value: r.otherFee, color: '#94a3b8' },
+        { label: currentLang==='zh'?'淨利潤':'Profit', value: Math.max(0, r.profit), color: '#22c55e' }
+    ];
+    const total = items.reduce((s, c) => s + Math.max(0, c.value), 0);
+    document.getElementById('costBar').innerHTML = items.map(c => {
+        const pct = total > 0 ? (Math.max(0, c.value) / total * 100) : 0;
+        return '<div style="width:' + pct + '%;background:' + c.color + '" title="' + c.label + ': ' + fmt(c.value) + ' (' + pct.toFixed(1) + '%)"></div>';
+    }).join('');
+    document.getElementById('costLegend').innerHTML = items.map(c => {
+        const pct = total > 0 ? (Math.max(0, c.value) / total * 100) : 0;
+        return '<span class="legend-item"><span class="legend-dot" style="background:' + c.color + '"></span>' + c.label + ' ' + pct.toFixed(1) + '%</span>';
+    }).join('');
+}
+
+/* ===== 台灣→美國 額外成本計算 ===== */
+function calcTw() {
+    const twPrice = parseFloat(document.getElementById('twPrice').value) || 0;
+    const exRate = parseFloat(document.getElementById('twExRate').value) || 32.5;
+    const twCost = parseFloat(document.getElementById('twCost').value) || 0;
+    const catKey = document.getElementById('twCategory').value;
+    const weightG = parseFloat(document.getElementById('twWeight').value) || 0;
+    const method = document.getElementById('twFbmMethod').value;
+
+    // 換算 USD
+    const usdPrice = twPrice / exRate;
+    const cogsUsd = twCost / exRate;
+
+    // 台灣利潤率
+    const twMargin = twPrice > 0 ? ((twPrice - twCost) / twPrice * 100) : 0;
+
+    // Amazon 佣金
+    const referral = calcReferralFee(usdPrice, catKey);
+
+    // 帳戶月費分攤 (假設月銷 200 件)
+    const accountPerUnit = 39.99 / 200;
+
+    // FBM 配送費估算 (依重量)
+    const weightKg = weightG / 1000;
+    let shipCost, duty;
+    if (method === 'express-ddp') {
+        shipCost = 8 + weightKg * 8; // 基礎 $8 + $8/kg
+        duty = 0; // DDP 已含
+    } else {
+        shipCost = 4 + weightKg * 3; // 海外倉：頭程分攤 + 境內配送
+        duty = usdPrice * 0.05; // 估算 5% 關稅
+    }
+    shipCost = Math.round(shipCost * 100) / 100;
+    duty = Math.round(duty * 100) / 100;
+
+    // 包裝 + 客服退貨
+    const misc = 1.50;
+
+    // 額外成本合計
+    const extraTotal = referral + accountPerUnit + shipCost + duty + misc;
+    const extraPct = usdPrice > 0 ? (extraTotal / usdPrice * 100) : 0;
+
+    // 淨利潤
+    const profit = usdPrice - cogsUsd - extraTotal;
+    const margin = usdPrice > 0 ? (profit / usdPrice * 100) : 0;
+
+    // 建議售價：要維持台灣利潤率
+    // suggestedPrice - cogsUsd - referral(suggested) - accountPerUnit - shipCost - duty - misc = suggestedPrice * twMargin/100
+    // 簡化：referral ≈ suggestedPrice * referralPct
+    const cat = CATEGORIES[catKey];
+    const refPct = cat ? cat.pct / 100 : 0.15;
+    // P - cogsUsd - P*refPct - account - ship - duty - misc = P * twMargin/100
+    // P * (1 - refPct - twMargin/100) = cogsUsd + account + ship + duty + misc
+    const denominator = 1 - refPct - (twMargin / 100);
+    const suggestedPrice = denominator > 0 ? (cogsUsd + accountPerUnit + shipCost + duty + misc) / denominator : 0;
+
+    // 顯示
+    const f = (n) => '$' + n.toFixed(2);
+    const fTwd = (n) => 'NT$' + Math.round(n).toLocaleString();
+
+    document.getElementById('tw-r-twprice').textContent = fTwd(twPrice);
+    document.getElementById('tw-r-usdprice').textContent = f(usdPrice);
+    document.getElementById('tw-r-cogs').textContent = '-' + f(cogsUsd);
+    document.getElementById('tw-r-referral').textContent = '-' + f(referral);
+    document.getElementById('tw-r-account').textContent = '-' + f(accountPerUnit);
+    document.getElementById('tw-r-ship').textContent = '-' + f(shipCost);
+    document.getElementById('tw-r-duty').textContent = '-' + f(duty);
+    document.getElementById('tw-r-misc').textContent = '-' + f(misc);
+    document.getElementById('tw-r-extra-total').textContent = '-' + f(extraTotal);
+    document.getElementById('tw-r-extra-pct').textContent = extraPct.toFixed(1) + '%';
+    document.getElementById('tw-r-profit').textContent = f(profit);
+    document.getElementById('tw-r-profit-twd').textContent = fTwd(profit * exRate);
+    document.getElementById('tw-r-margin').textContent = margin.toFixed(1) + '%';
+    document.getElementById('tw-r-tw-margin').textContent = twMargin.toFixed(1) + '%';
+    document.getElementById('tw-r-suggested').textContent = suggestedPrice > 0 ? f(suggestedPrice) : '-';
+}
+
+// 初始計算
+calc();
+</script>
+</body>
+</html>
