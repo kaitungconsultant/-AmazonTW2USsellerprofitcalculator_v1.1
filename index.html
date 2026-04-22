@@ -108,7 +108,7 @@
         .mode-advanced .advanced-only { display: block; }
         .mode-advanced .result-row.advanced-only { display: flex; }
         .fbm-only { display: none; }
-        .mode-fbm .fba-only { display: none; }
+        .mode-fbm .fba-only { display: none !important; }
         .mode-fbm .fbm-only { display: block; }
         .mode-fbm .result-row.fbm-only { display: flex; }
         .mode-fbm .result-section-title.fbm-only { display: block; }
@@ -119,7 +119,7 @@
         .mode-fbm.mode-advanced .result-row.advanced-only { display: flex; }
         .mode-fbm.mode-advanced .result-row.fba-only { display: none; }
         .fbm-tw-only { display: none; }
-        .mode-fbm-tw .fba-only { display: none; }
+        .mode-fbm-tw .fba-only { display: none !important; }
         .mode-fbm-tw .fbm-only { display: none; }
         .mode-fbm-tw .fbm-tw-only { display: block; }
         .mode-fbm-tw .result-row.fbm-tw-only { display: flex; }
@@ -129,10 +129,10 @@
         .mode-fbm-tw .result-row.fbm-only { display: none; }
         .mode-fbm-tw .result-section-title.fbm-only { display: none; }
         .mode-fbm-tw .advanced-only { display: none; }
-        .mode-fbm-tw .card:not(.fbm-tw-only):not(.result-card):not(.full-width) { display: none; }
-        .mode-fbm-tw .card.fbm-tw-only { display: block; }
-        .mode-fbm-tw .card.result-card { display: none; }
-        .mode-fbm-tw .card.full-width { display: none; }
+        .mode-fbm-tw .card:not(.fbm-tw-only):not(.result-card):not(.full-width) { display: none !important; }
+        .mode-fbm-tw .card.fbm-tw-only { display: block !important; }
+        .mode-fbm-tw .card.result-card { display: none !important; }
+        .mode-fbm-tw .card.full-width { display: none !important; }
         .tw-highlight { background: linear-gradient(135deg, #eff6ff, #f0fdf4); border: 1px solid #93c5fd; border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; }
         .tw-highlight .tw-label { font-size: 0.75rem; color: #1e40af; font-weight: 600; margin-bottom: 0.3rem; }
         .tw-result-row { display: flex; justify-content: space-between; padding: 0.3rem 0; font-size: 0.82rem; border-bottom: 1px solid rgba(0,0,0,0.05); }
@@ -160,7 +160,7 @@
         <button class="active" id="btn-mode-basic" onclick="setMode('basic')" data-zh="📦 FBA 基礎" data-en="📦 FBA Basic">📦 FBA 基礎</button>
         <button id="btn-mode-advanced" onclick="setMode('advanced')" data-zh="🔧 FBA 進階" data-en="🔧 FBA Advanced">🔧 FBA 進階</button>
         <button id="btn-mode-fbm" onclick="setMode('fbm')" data-zh="🚚 FBM 自配送" data-en="🚚 FBM">🚚 FBM 自配送</button>
-        <button id="btn-mode-fbm-tw" onclick="setMode('fbm-tw')" data-zh="🇹🇼 台灣→美國" data-en="🇹🇼 TW→US">🇹🇼 台灣→美國</button>
+        <button id="btn-mode-fbm-tw" onclick="setMode('fbm-tw')" data-zh="🇹🇼 台灣電商銷售美國亞馬遜" data-en="🇹🇼 TW eCommerce → US Amazon">🇹🇼 台灣電商銷售美國亞馬遜</button>
     </div>
     <div style="font-size:0.7rem;color:var(--text-light);margin-top:0.25rem;" id="modeDesc">FBA 基礎：產品成本 + 佣金 + FBA + 頭程物流</div>
 </div>
@@ -282,26 +282,36 @@
             </div>
             <hr class="section-divider">
             <div class="form-group">
-                <label>頭程運費方式 (台灣→美國FBA倉)</label>
+                <label data-zh="頭程運費方式" data-en="Inbound Shipping Method">頭程運費方式</label>
                 <select id="shipMethod" onchange="onShipMethodChange()">
                     <option value="sea">海運 (~$0.8-1.5/kg，30-45天)</option>
                     <option value="air">空運 (~$3-6/kg，7-10天)</option>
                     <option value="express">快遞 (~$6-10/kg，3-5天)</option>
-                    <option value="custom">自訂費率</option>
+                    <option value="custom">自訂費率 (USD/kg)</option>
+                    <option value="per-piece">自訂每件費用 (USD/pcs)</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>頭程運費單價</label>
+            <div class="form-group" id="shipRateGroup">
+                <label data-zh="頭程運費單價" data-en="Shipping Rate">頭程運費單價</label>
                 <div class="input-row">
                     <input type="number" id="shipRate" value="1.0" step="0.1" min="0" oninput="calc()">
                     <span class="unit">USD/kg</span>
                 </div>
                 <div class="fee-detail" id="shipCalcNote"></div>
-                <div class="hint" id="shipHintArea">費率為台灣→美國 FBA 倉庫的每公斤費用（含報關、派送）。<br>
+            </div>
+            <div class="form-group" id="shipPerPieceGroup" style="display:none;">
+                <label data-zh="每件頭程運費 (直接填入)" data-en="Shipping Cost per Unit (direct input)">每件頭程運費 (直接填入) <span class="tip" data-tip="已知每件運費可直接填入，跳過重量計算。例：一箱 200 件空運 $400，每件 = $400 ÷ 200 = $2.00。">?</span></label>
+                <div class="input-row">
+                    <input type="number" id="shipPerPiece" value="2.00" step="0.1" min="0" oninput="calc()">
+                    <span class="unit">USD/pcs</span>
+                </div>
+                <div class="hint" data-zh="例：一箱 200 件空運 $400 → 每件 $2.00" data-en="e.g. 200 pcs/carton, $400 shipping → $2.00/pc">例：一箱 200 件空運 $400 → 每件 $2.00</div>
+            </div>
+            <div class="hint" id="shipHintArea">⚠️ 頭程運費<b>不含</b>美國進口關稅。關稅需另外估算（見進階版「營運成本」區塊）。<br>
+                費率為台灣→美國 FBA 倉庫的每公斤費用（含報關手續費、派送）。<br>
                 海運參考：整櫃 FCL 約 $0.5-0.8/kg，散貨 LCL 約 $1.0-1.5/kg。<br>
                 空運參考：一般空運 $3-5/kg，快遞 DDP $6-10/kg。<br>
-                實際費率請向貨代報價，或使用 <a href="https://supplychain.amazon.com/" target="_blank" rel="noopener" style="color:var(--accent);">Amazon Global Logistics</a> 查詢。</div>
-            </div>
+                實際費率和關稅請向<a href="https://gs.amazon.com.tw/service-provider" target="_blank" rel="noopener" style="color:var(--accent);">Amazon 認證第三方服務商</a>取得完整報價。</div>
             <hr class="section-divider">
             <div class="form-group">
                 <label>FBA 配送費 (每件) <span class="auto-badge">自動估算</span> <span class="tip" data-tip="依商品重量、尺寸和售價自動估算（2026 官方費率）。費率依售價分三檔：<$10 / $10-$50 / >$50。含 3.5% 燃油附加費（2026/4/17 起）。包含揀貨、包裝、配送、客服和退貨處理。可手動覆蓋。來源：Seller Central GABBX6GZPA8MSZGW">?</span></label>
@@ -952,8 +962,8 @@ function updateOriginLabels() {
     const hintEl = document.getElementById('shipHintArea');
     if (hintEl) {
         hintEl.innerHTML = isCn
-            ? '費率為中國→美國 FBA 倉庫的每公斤費用（含報關、派送）。<br>海運：整櫃 FCL 約 $0.3-0.6/kg，散貨 LCL 約 $0.7-1.2/kg。<br>空運：$2.5-4/kg，快遞 DDP $5-8/kg。<br>可使用 <a href="https://supplychain.amazon.com/" target="_blank" rel="noopener" style="color:var(--accent);">Amazon Global Logistics (AGL)</a> 從中國直發。'
-            : '費率為台灣→美國 FBA 倉庫的每公斤費用（含報關、派送）。<br>海運：整櫃 FCL 約 $0.5-0.8/kg，散貨 LCL 約 $1.0-1.5/kg。<br>空運：$3-5/kg，快遞 DDP $6-10/kg。<br>實際費率請向貨代報價，或使用 <a href="https://supplychain.amazon.com/" target="_blank" rel="noopener" style="color:var(--accent);">Amazon Global Logistics</a> 查詢。';
+            ? '⚠️ 頭程運費<b>不含</b>美國進口關稅。關稅需另外估算（見進階版「營運成本」區塊）。<br>費率為中國→美國 FBA 倉庫的每公斤費用（含報關手續費、派送）。<br>海運：整櫃 FCL 約 $0.3-0.6/kg，散貨 LCL 約 $0.7-1.2/kg。<br>空運：$2.5-4/kg，快遞 DDP $5-8/kg。<br>實際費率和關稅請向<a href="https://gs.amazon.com.tw/service-provider" target="_blank" rel="noopener" style="color:var(--accent);">Amazon 認證第三方服務商</a>取得完整報價。'
+            : '⚠️ 頭程運費<b>不含</b>美國進口關稅。關稅需另外估算（見進階版「營運成本」區塊）。<br>費率為台灣→美國 FBA 倉庫的每公斤費用（含報關手續費、派送）。<br>海運：整櫃 FCL 約 $0.5-0.8/kg，散貨 LCL 約 $1.0-1.5/kg。<br>空運：$3-5/kg，快遞 DDP $6-10/kg。<br>實際費率和關稅請向<a href="https://gs.amazon.com.tw/service-provider" target="_blank" rel="noopener" style="color:var(--accent);">Amazon 認證第三方服務商</a>取得完整報價。';
     }
 
     // 台灣→美國模式在中國出貨時隱藏
@@ -983,18 +993,29 @@ function setMode(mode) {
         basic: 'FBA 基礎：產品成本 + 佣金 + FBA + 頭程物流',
         advanced: 'FBA 進階：基礎 + 廣告 + 退換貨 + Vine + 帳戶費 + 優惠方案',
         fbm: 'FBM 自配送：產品成本 + 佣金 + 自行配送費 + 客服退貨',
-        'fbm-tw': '台灣→美國：輸入台灣產品資訊，估算 Amazon 額外成本和建議售價'
+        'fbm-tw': '台灣電商銷售美國亞馬遜：輸入台灣產品資訊，估算 Amazon 額外成本和建議售價'
     };
     const descEn = {
         basic: 'FBA Basic: COGS + Referral + FBA + Shipping',
         advanced: 'FBA Advanced: Basic + Ads + Returns + Vine + Account + Incentives',
         fbm: 'FBM: COGS + Referral + Self-fulfillment + CS & Returns',
-        'fbm-tw': 'TW→US: Enter Taiwan product info, estimate Amazon extra costs & suggested price'
+        'fbm-tw': 'TW eCommerce → US Amazon: Enter Taiwan product info, estimate Amazon extra costs & suggested price'
     };
 
     if (mode === 'advanced') container.classList.add('mode-advanced');
     if (mode === 'fbm') container.classList.add('mode-fbm');
     if (mode === 'fbm-tw') container.classList.add('mode-fbm-tw');
+
+    // 強制隱藏/顯示 FBA 卡片
+    document.querySelectorAll('.fba-only').forEach(el => {
+        el.style.display = (mode === 'fbm' || mode === 'fbm-tw') ? 'none' : '';
+    });
+    document.querySelectorAll('.fbm-only').forEach(el => {
+        el.style.display = (mode === 'fbm') ? '' : 'none';
+    });
+    document.querySelectorAll('.fbm-tw-only').forEach(el => {
+        el.style.display = (mode === 'fbm-tw') ? '' : 'none';
+    });
 
     document.getElementById('modeDesc').textContent = currentLang === 'zh' ? descZh[mode] : descEn[mode];
 
@@ -1348,7 +1369,19 @@ const SHIP_RATES = { sea: 1.0, air: 4.5, express: 8.0, custom: null };
 
 function onShipMethodChange() {
     const m = document.getElementById('shipMethod').value;
-    if (SHIP_RATES[m] !== null) document.getElementById('shipRate').value = SHIP_RATES[m];
+    const rateGroup = document.getElementById('shipRateGroup');
+    const perPieceGroup = document.getElementById('shipPerPieceGroup');
+
+    if (m === 'per-piece') {
+        rateGroup.style.display = 'none';
+        perPieceGroup.style.display = 'block';
+    } else {
+        rateGroup.style.display = 'block';
+        perPieceGroup.style.display = 'none';
+        if (SHIP_RATES[m] !== null && SHIP_RATES[m] !== undefined) {
+            document.getElementById('shipRate').value = SHIP_RATES[m];
+        }
+    }
     calc();
 }
 
@@ -1469,7 +1502,15 @@ function calcForPrice(price) {
 
     // FBA 專屬
     const weightKg = getWeightGrams() / 1000;
-    const shipCost = isFbm ? 0 : getVal('shipRate') * weightKg;
+    const shipMethod = document.getElementById('shipMethod') ? document.getElementById('shipMethod').value : 'sea';
+    let shipCost;
+    if (isFbm) {
+        shipCost = 0;
+    } else if (shipMethod === 'per-piece') {
+        shipCost = getVal('shipPerPiece');
+    } else {
+        shipCost = getVal('shipRate') * weightKg;
+    }
     const fbaFee = isFbm ? 0 : getVal('fbaFee');
     const storageFeeMonthly = isFbm ? 0 : getVal('storageFee');
     const storageMonths = isFbm ? 0 : getVal('storageMonths');
@@ -1607,9 +1648,15 @@ function calc() {
     else { optEl.style.display = 'none'; }
 
     // 頭程運費計算明細
-    const shipWeightKg = wG / 1000;
-    const shipCostEst = getVal('shipRate') * shipWeightKg;
-    document.getElementById('shipCalcNote').textContent = shipWeightKg.toFixed(2) + ' kg × $' + getVal('shipRate').toFixed(2) + '/kg = $' + shipCostEst.toFixed(2) + '/件';
+    // 頭程運費計算明細
+    const curShipMethod = document.getElementById('shipMethod') ? document.getElementById('shipMethod').value : 'sea';
+    if (curShipMethod === 'per-piece') {
+        document.getElementById('shipCalcNote').textContent = '每件 $' + getVal('shipPerPiece').toFixed(2) + '（直接填入）';
+    } else {
+        const shipWeightKg = wG / 1000;
+        const shipCostEst = getVal('shipRate') * shipWeightKg;
+        document.getElementById('shipCalcNote').textContent = shipWeightKg.toFixed(2) + ' kg × $' + getVal('shipRate').toFixed(2) + '/kg = $' + shipCostEst.toFixed(2) + '/件';
+    }
 
     // 自動估算倉儲費
     const storInfo = calcStorageFee(dLin, dWin, dHin);
