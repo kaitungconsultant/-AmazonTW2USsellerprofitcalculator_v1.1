@@ -282,24 +282,34 @@
             </div>
             <hr class="section-divider">
             <div class="form-group">
-                <label data-zh="頭程運費方式" data-en="Inbound Shipping Method">頭程運費方式</label>
+                <label data-zh="頭程運費方式" data-en="Inbound Shipping Method">頭程運費方式 <span class="tip" data-tip="Amazon SEND 為亞馬遜官方跨境物流計畫，費率為 DDP（含關稅到門）。僅適用於台灣出貨到美國 FBA。費率依重量和目的地區域而異。">?</span></label>
                 <select id="shipMethod" onchange="onShipMethodChange()">
-                    <option value="sea">海運 (~$0.8-1.5/kg，30-45天)</option>
-                    <option value="air">空運 (~$3-6/kg，7-10天)</option>
-                    <option value="express">快遞 (~$6-10/kg，3-5天)</option>
-                    <option value="custom">自訂費率 (USD/kg)</option>
-                    <option value="per-piece">自訂每件費用 (USD/pcs)</option>
+                    <optgroup label="── Amazon SEND (DDP 含關稅) ──" id="sendOptGroup">
+                        <option value="send-express">SEND UPS 快遞 Expedited ($9.43/kg, 5-7天)</option>
+                        <option value="send-express-saver">SEND UPS Express Saver ($9.93/kg, 2-3天)</option>
+                        <option value="send-air">SEND 空運 ($8.32-9.23/kg, 7-12天)</option>
+                        <option value="send-sea">SEND 海運 ($132-241/cbm, 34-62天)</option>
+                    </optgroup>
+                    <optgroup label="── 一般貨代 (不含關稅) ──">
+                        <option value="sea">海運 (~$0.8-1.5/kg，30-45天)</option>
+                        <option value="air">空運 (~$3-6/kg，7-10天)</option>
+                        <option value="express">快遞 (~$6-10/kg，3-5天)</option>
+                    </optgroup>
+                    <optgroup label="── 自訂 ──">
+                        <option value="custom">自訂費率 (USD/kg)</option>
+                    </optgroup>
                 </select>
             </div>
             <div class="form-group" id="shipRateGroup">
                 <label data-zh="頭程運費單價" data-en="Shipping Rate">頭程運費單價</label>
                 <div class="input-row">
-                    <input type="number" id="shipRate" value="1.0" step="0.1" min="0" oninput="calc()">
-                    <span class="unit">USD/kg</span>
+                    <input type="number" id="shipRate" value="9.43" step="0.1" min="0" oninput="calc()">
+                    <span class="unit" id="shipRateUnit">USD/kg</span>
                 </div>
                 <div class="fee-detail" id="shipCalcNote"></div>
+                <div class="fee-detail" id="sendDdpNote" style="color:#10b981;">✅ SEND 費率為 DDP（含關稅到門），無需另外估算關稅</div>
             </div>
-            <div class="form-group" id="shipPerPieceGroup" style="display:none;">
+            <div class="form-group" id="shipPerPieceGroup">
                 <label data-zh="每件頭程運費 (直接填入)" data-en="Shipping Cost per Unit (direct input)">每件頭程運費 (直接填入) <span class="tip" data-tip="已知每件運費可直接填入，跳過重量計算。例：一箱 200 件空運 $400，每件 = $400 ÷ 200 = $2.00。">?</span></label>
                 <div class="input-row">
                     <input type="number" id="shipPerPiece" value="2.00" step="0.1" min="0" oninput="calc()">
@@ -490,7 +500,6 @@
                 <label data-zh="FBM 配送方式" data-en="FBM Shipping Method">FBM 配送方式</label>
                 <select id="twFbmMethod" onchange="calcTw()">
                     <option value="express-ddp">國際快遞 DDP（含稅到門）</option>
-                    <option value="overseas-wh">海外倉代發</option>
                 </select>
             </div>
 
@@ -863,6 +872,17 @@
                         </td>
                         <td style="padding:0.4rem 0.5rem;">2025-Q4 估算</td>
                     </tr>
+                    <tr style="border-bottom:1px solid var(--border);">
+                        <td style="padding:0.4rem 0.5rem;" data-zh="Amazon SEND 頭程費率 (DDP)" data-en="Amazon SEND Rates (DDP)">Amazon SEND 頭程費率 (DDP)</td>
+                        <td style="padding:0.4rem 0.5rem;">
+                            Amazon SEND — 亞馬遜官方跨境物流計畫（僅台灣出貨）<br>
+                            UPS 快遞: 2025 Q4 費率（含燃油費及旺季附加費）<br>
+                            空運: 2026/4/2 啟用，金匯國際物流 (Amazon SPN)<br>
+                            海運: 2026/4/2 啟用，金匯國際物流 (Amazon SPN)<br>
+                            所有 SEND 費率為 DDP（含關稅到門）
+                        </td>
+                        <td style="padding:0.4rem 0.5rem;">2026-04</td>
+                    </tr>
                 </tbody>
             </table>
             <div style="margin-top:0.75rem;padding:0.5rem;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;font-size:0.72rem;line-height:1.5;" data-zh="⚠️ 以上費率資料擷取自公開來源，可能隨 Amazon 政策調整而變動。建議使用者定期查閱官方頁面確認最新費率。部分連結需登入 Seller Central 才能查看完整內容。" data-en="⚠️ Rates sourced from public data and may change with Amazon policy updates. Please verify with official pages regularly. Some links require Seller Central login.">
@@ -966,11 +986,21 @@ function updateOriginLabels() {
             : '⚠️ 頭程運費<b>不含</b>美國進口關稅。關稅需另外估算（見進階版「營運成本」區塊）。<br>費率為台灣→美國 FBA 倉庫的每公斤費用（含報關手續費、派送）。<br>海運：整櫃 FCL 約 $0.5-0.8/kg，散貨 LCL 約 $1.0-1.5/kg。<br>空運：$3-5/kg，快遞 DDP $6-10/kg。<br>實際費率和關稅請向<a href="https://gs.amazon.com.tw/service-provider" target="_blank" rel="noopener" style="color:var(--accent);">Amazon 認證第三方服務商</a>取得完整報價。';
     }
 
-    // 台灣→美國模式在中國出貨時隱藏
+    // 台灣→美國模式和 SEND 選項在中國出貨時隱藏
     const twBtn = document.getElementById('btn-mode-fbm-tw');
     if (twBtn) {
         twBtn.style.display = isCn ? 'none' : '';
         if (isCn && currentMode === 'fbm-tw') setMode('basic');
+    }
+    const sendOptGroup = document.getElementById('sendOptGroup');
+    if (sendOptGroup) {
+        sendOptGroup.style.display = isCn ? 'none' : '';
+        // 如果當前選的是 SEND 方式，切回一般海運
+        const curMethod = document.getElementById('shipMethod').value;
+        if (isCn && curMethod.startsWith('send-')) {
+            document.getElementById('shipMethod').value = 'sea';
+            onShipMethodChange();
+        }
     }
 
     // 更新 header 副標題
@@ -1365,22 +1395,87 @@ function setBrandRebate(level) {
     calc();
 }
 
+/* ===== SEND & 一般貨代費率 (台灣出貨, DDP 含關稅) =====
+ * SEND UPS 快遞: 2025 Q4 費率, 含燃油費及旺季附加費
+ * SEND 空運: 2026/4/2 啟用, 金匯國際物流 (Amazon SPN)
+ * SEND 海運: 2026/4/2 啟用, 金匯國際物流 (Amazon SPN)
+ * 來源: Amazon SEND 官方費率表
+ */
 const SHIP_RATES = { sea: 1.0, air: 4.5, express: 8.0, custom: null };
+
+// SEND 費率依重量區間計算 (USD/kg)
+function getSendRate(method, weightKg) {
+    if (method === 'send-express') {
+        // SEND UPS Expedited (5-7 工作天)
+        if (weightKg <= 10) return 9.43;
+        if (weightKg <= 30) return 7.86;
+        if (weightKg <= 50) return 7.81;
+        if (weightKg <= 100) return 7.25;
+        return 7.27;
+    }
+    if (method === 'send-express-saver') {
+        // SEND UPS Express Saver (2-3 工作天)
+        if (weightKg <= 10) return 9.93;
+        if (weightKg <= 30) return 8.26;
+        if (weightKg <= 50) return 8.21;
+        if (weightKg <= 100) return 7.62;
+        return 7.64;
+    }
+    if (method === 'send-air') {
+        // SEND 空運 (7-12天), 使用中部費率作為預設
+        if (weightKg <= 24) return 8.96;
+        if (weightKg <= 49) return 8.38;
+        if (weightKg <= 99) return 7.05;
+        return 6.87;
+    }
+    if (method === 'send-sea') {
+        // SEND 海運, 以 CBM 計費, 1 CBM = 1363 kg
+        // 簡化: 用中部 FBA 倉庫 $220/cbm, 換算約 $0.16/kg (假設密度 1363kg/cbm)
+        // 但實際是按 CBM 計費, 這裡用每公斤近似值供參考
+        return 0.16; // ~$220/cbm ÷ 1363kg/cbm
+    }
+    return null;
+}
 
 function onShipMethodChange() {
     const m = document.getElementById('shipMethod').value;
     const rateGroup = document.getElementById('shipRateGroup');
+    const ddpNote = document.getElementById('sendDdpNote');
+    const isSend = m.startsWith('send-');
+    const weightKg = getWeightGrams() / 1000;
     const perPieceGroup = document.getElementById('shipPerPieceGroup');
 
     if (m === 'per-piece') {
         rateGroup.style.display = 'none';
         perPieceGroup.style.display = 'block';
+        ddpNote.style.display = 'none';
     } else {
         rateGroup.style.display = 'block';
-        perPieceGroup.style.display = 'none';
+        perPieceGroup.style.display = 'block';
+
+    if (isSend) {
+        const rate = getSendRate(m, weightKg);
+        document.getElementById('shipRate').value = rate;
+        ddpNote.style.display = 'block';
+
+        if (m === 'send-sea') {
+            document.getElementById('shipRateUnit').textContent = 'USD/kg (≈$220/cbm)';
+            ddpNote.innerHTML = '✅ SEND 海運 DDP（含關稅到門）。實際按 CBM 計費：西部 $132/cbm、中部 $220/cbm、東部 $241/cbm。Min 1 CBM。時效 34-62 天。';
+        } else if (m === 'send-air') {
+            document.getElementById('shipRateUnit').textContent = 'USD/kg';
+            ddpNote.innerHTML = '✅ SEND 空運 DDP（含關稅到門）。費率依區域：西部 $' + (weightKg<=24?'8.32':weightKg<=49?'7.85':weightKg<=99?'6.87':'6.64') + '、中部 $' + rate.toFixed(2) + '、東部 $' + (weightKg<=24?'9.23':weightKg<=49?'8.53':weightKg<=99?'7.16':'6.93') + '/kg。時效 7-12 天。';
+        } else {
+            document.getElementById('shipRateUnit').textContent = 'USD/kg';
+            const svcName = m === 'send-express' ? 'Expedited (5-7天)' : 'Express Saver (2-3天)';
+            ddpNote.innerHTML = '✅ SEND UPS ' + svcName + ' DDP（含關稅、燃油費及旺季附加費）。費率 $' + rate.toFixed(2) + '/kg（' + weightKg.toFixed(1) + 'kg 區間）。';
+        }
+    } else {
+        ddpNote.style.display = 'none';
+        document.getElementById('shipRateUnit').textContent = 'USD/kg';
         if (SHIP_RATES[m] !== null && SHIP_RATES[m] !== undefined) {
             document.getElementById('shipRate').value = SHIP_RATES[m];
         }
+    }
     }
     calc();
 }
